@@ -12,7 +12,7 @@ DB_PASSWORD = 'db_password'
 DB_DATABASE = 'speedtest_db'
 
 # Speedtest Settings
-TEST_INTERVAL = 900  # Time between tests (in seconds).
+TEST_INTERVAL = 1800  # Time between tests (in seconds).
 TEST_FAIL_INTERVAL = 60  # Time before retrying a failed Speedtest (in seconds).
 
 influxdb_client = InfluxDBClient(
