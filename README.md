@@ -1,6 +1,6 @@
-# speedtest-influx
+# Speedtest to InfluxDB
 
-This is a small Python script that will continuously run the OOKLA Speedtest CLI application, reformat the data output and forward it on to an InfluxDB database.
+This is a small Python script that will continuously run the Speedtest CLI application by Ookla, reformat the data output and forward it on to an InfluxDB database.
 
 You may want to do this so that you can track your internet connections consistency over time. Using Grafana you can view and explore this data easily.
 
@@ -8,9 +8,13 @@ You may want to do this so that you can track your internet connections consiste
 
 ## Using the script
 
-### Option 1 - No Container
+Adjust the InfluxDB connection settings at the top of `main.py` to fit your setup and then run with one of the options listed below.
 
-1. [Install the OOKA Speedtest CLI application.](https://www.speedtest.net/apps/cli)
+Be aware that this script will automatically accept the license and GDPR statement so that it can run non-interactively. Make sure you agree with them before running.
+
+### 1. No Container
+
+1. [Install the Speedtest CLI application by Ookla.](https://www.speedtest.net/apps/cli)
 
 2. Install the InfluxDB client for library from Python.
 
@@ -20,16 +24,13 @@ You may want to do this so that you can track your internet connections consiste
 
     `python3 ./main.py`
 
-### Option 2 - Run with Docker/Podman
+### 2. Run with Docker or Podman
 
 1. Build the container.
 
     `docker build -t aidengilmartin/speedtest-influx ./`
 
-    `podman build -t aidengilmartin/speedtest-influx ./`
-
 2. Run the container.
 
     `docker run -d --name speedtest-influx aidengilmartin/speedtest-influx`
 
-    `podman run -d --name speedtest-influx aidengilmartin/speedtest-influx`
