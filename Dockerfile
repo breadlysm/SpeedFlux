@@ -14,7 +14,8 @@ RUN echo "deb https://ookla.bintray.com/debian buster main" | tee  /etc/apt/sour
 RUN apt-get update && apt-get -q -y install speedtest
 
 # Install Python packages
-RUN pip install influxdb
+COPY requirements.txt /
+RUN pip install -r /requirements.txt
 
 # Clean up
 RUN apt-get -q -y autoremove
