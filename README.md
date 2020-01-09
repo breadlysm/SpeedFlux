@@ -16,6 +16,8 @@ Be aware that this script will automatically accept the license and GDPR stateme
 
 1. [Install the Speedtest CLI application by Ookla.](https://www.speedtest.net/apps/cli)
 
+    NOTE: The `speedtest-cli` package in distro repositories is an unofficial client. It will need to be uninstalled before installing the Ookla Speedtest CLI application with the directions on their website.
+
 2. Install the InfluxDB client for library from Python.
 
     `pip install influxdb`
