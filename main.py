@@ -1,19 +1,20 @@
 import time
 import json
 import subprocess
+import os
 
 from influxdb import InfluxDBClient
 
 # InfluxDB Settings
-DB_ADDRESS = 'db_hostname.network'
-DB_PORT = 8086
-DB_USER = 'db_username'
-DB_PASSWORD = 'db_password'
-DB_DATABASE = 'speedtest_db'
+DB_ADDRESS = os.environ.get('INFLUX_DB_ADDRESS')
+DB_PORT = os.environ.get('INFLUX_DB_PORT')
+DB_USER = os.environ.get('INFLUX_DB_USER')
+DB_PASSWORD = os.environ.get('INFLUX_DB_PASSWORD')
+DB_DATABASE = os.environ.get('INFLUX_DB_DATABASE')
 
 # Speedtest Settings
-TEST_INTERVAL = 1800  # Time between tests (in seconds).
-TEST_FAIL_INTERVAL = 60  # Time before retrying a failed Speedtest (in seconds).
+TEST_INTERVAL = os.environ.get('SPEEDTEST_INTERVAL')  # Time between tests (in seconds).
+TEST_FAIL_INTERVAL = os.environ.get('SPEEDTEST_FAIL_INTERVAL')  # Time before retrying a failed Speedtest (in seconds).
 
 influxdb_client = InfluxDBClient(
     DB_ADDRESS, DB_PORT, DB_USER, DB_PASSWORD, None)
