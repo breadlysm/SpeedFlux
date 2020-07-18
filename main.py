@@ -7,14 +7,14 @@ from influxdb import InfluxDBClient
 
 # InfluxDB Settings
 DB_ADDRESS = os.environ.get('INFLUX_DB_ADDRESS')
-DB_PORT = os.environ.get('INFLUX_DB_PORT')
+DB_PORT = int(os.environ.get('INFLUX_DB_PORT'))
 DB_USER = os.environ.get('INFLUX_DB_USER')
 DB_PASSWORD = os.environ.get('INFLUX_DB_PASSWORD')
 DB_DATABASE = os.environ.get('INFLUX_DB_DATABASE')
 
 # Speedtest Settings
-TEST_INTERVAL = os.environ.get('SPEEDTEST_INTERVAL')  # Time between tests (in seconds).
-TEST_FAIL_INTERVAL = os.environ.get('SPEEDTEST_FAIL_INTERVAL')  # Time before retrying a failed Speedtest (in seconds).
+TEST_INTERVAL = int(os.environ.get('SPEEDTEST_INTERVAL'))  # Time between tests (in seconds).
+TEST_FAIL_INTERVAL = int(os.environ.get('SPEEDTEST_FAIL_INTERVAL'))  # Time before retrying a failed Speedtest (in seconds).
 
 influxdb_client = InfluxDBClient(
     DB_ADDRESS, DB_PORT, DB_USER, DB_PASSWORD, None)
