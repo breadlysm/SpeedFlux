@@ -82,7 +82,6 @@ def main():
             ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json"], capture_output=True)
 
         if speedtest.returncode == 0:  # Speedtest was successful.
-        if speedtest.returncode == 0:  # Speedtest was successful.
             data = format_for_influx(speedtest.stdout)
             print("Speedtest Successful:")
             if influxdb_client.write_points(data) == True:
@@ -94,7 +93,7 @@ def main():
             print(speedtest.stdout)
             time.sleep(TEST_FAIL_INTERVAL)
 
-
+            
 if __name__ == '__main__':
     print('Speedtest CLI Data Logger to InfluxDB')
     main()
