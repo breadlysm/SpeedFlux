@@ -47,7 +47,7 @@ def format_for_influx(cliout):
             'time': data['timestamp'],
             'fields': {
                 # Byte to Megabit
-                'bandwidth': data['download']['bandwidth'] / 125000,
+                'bandwidth': data['download']['bandwidth'],  #/125000
                 'bytes': data['download']['bytes'],
                 'elapsed': data['download']['elapsed']
             }
@@ -57,7 +57,7 @@ def format_for_influx(cliout):
             'time': data['timestamp'],
             'fields': {
                 # Byte to Megabit
-                'bandwidth': data['upload']['bandwidth'] / 125000,
+                'bandwidth': data['upload']['bandwidth'], #/125000
                 'bytes': data['upload']['bytes'],
                 'elapsed': data['upload']['elapsed']
             }
@@ -66,7 +66,7 @@ def format_for_influx(cliout):
             'measurement': 'packetLoss',
             'time': data['timestamp'],
             'fields': {
-                'packetLoss': data['packetLoss']
+                'packetLoss': int(data['packetLoss'])
             }
         }
     ]
@@ -81,6 +81,7 @@ def main():
         speedtest = subprocess.run(
             ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json"], capture_output=True)
 
+        if speedtest.returncode == 0:  # Speedtest was successful.
         if speedtest.returncode == 0:  # Speedtest was successful.
             data = format_for_influx(speedtest.stdout)
             print("Speedtest Successful:")
