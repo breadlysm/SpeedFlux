@@ -7,7 +7,6 @@ from influxdb import InfluxDBClient
 
 # InfluxDB Settings
 DB_ADDRESS = os.environ.get('INFLUX_DB_ADDRESS')
-print(os.environ.get('INFLUX_DB_PORT'))
 DB_PORT = int(os.environ.get('INFLUX_DB_PORT'))
 DB_USER = os.environ.get('INFLUX_DB_USER')
 DB_PASSWORD = os.environ.get('INFLUX_DB_PASSWORD')
