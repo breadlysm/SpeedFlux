@@ -7,6 +7,7 @@ from influxdb import InfluxDBClient
 
 # InfluxDB Settings
 DB_ADDRESS = os.environ.get('INFLUX_DB_ADDRESS')
+print(os.environ.get('INFLUX_DB_PORT'))
 DB_PORT = int(os.environ.get('INFLUX_DB_PORT'))
 DB_USER = os.environ.get('INFLUX_DB_USER')
 DB_PASSWORD = os.environ.get('INFLUX_DB_PASSWORD')
@@ -28,7 +29,11 @@ def init_db():
             DB_DATABASE)  # Create if does not exist.
     else:
         influxdb_client.switch_database(DB_DATABASE)  # Switch to if does exist.
-
+def pkt_loss(data):
+    if data['packetLoss']:
+        return data['packetLoss']
+    else: 
+        return 0
 
 def format_for_influx(cliout):
     data = json.loads(cliout)
@@ -66,7 +71,7 @@ def format_for_influx(cliout):
             'measurement': 'packetLoss',
             'time': data['timestamp'],
             'fields': {
-                'packetLoss': int(data['packetLoss'])
+                'packetLoss': pkt_loss(data)
             }
         }
     ]
