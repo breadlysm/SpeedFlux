@@ -1,8 +1,8 @@
 FROM python:3.8-slim-buster
 
-LABEL maintainer="Aiden Gilmartin" \
-    description="Speedtest to InfluxDB data bridge"
-
+LABEL maintainer="Josh Smith" \
+    description="Original by Aiden Gilmartin. Speedtest to InfluxDB data bridge"
+#wget "https://ookla.bintray.com/download/$(wget https://ookla.bintray.com/download/ -q -O - | grep x86_64-linux.tgz\" | grep -Po "(?<=href=\")[^^\"]*" | cut -d ":" -f 2)"
 # Install dependencies
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
