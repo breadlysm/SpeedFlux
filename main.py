@@ -2,7 +2,6 @@ import time
 import json
 import subprocess
 import os
-
 from influxdb import InfluxDBClient
 
 # InfluxDB Settings
@@ -29,7 +28,7 @@ def init_db():
     else:
         influxdb_client.switch_database(DB_DATABASE)  # Switch to if does exist.
 def pkt_loss(data):
-    if data['packetLoss']:
+    if 'packetLoss' in data.keys():
         return data['packetLoss']
     else: 
         return 0
