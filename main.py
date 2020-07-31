@@ -35,7 +35,7 @@ def init_db():
 
 def pkt_loss(data):
     if 'packetLoss' in data.keys():
-        return data['packetLoss']
+        return int(data['packetLoss'])
     else:
         return 0
 
