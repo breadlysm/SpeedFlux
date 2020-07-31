@@ -42,6 +42,9 @@ def pkt_loss(data):
 
 def tag_selection(data):
     tags = DB_TAGS
+    if tags is None:
+        return None
+    # tag_switch takes in _data and attaches CLIoutput to more readable ids
     tag_switch = {
         'isp': data['isp'],
         'interface': data['interface']['name'],
@@ -59,15 +62,14 @@ def tag_selection(data):
         'speedtest_id': data['result']['id'],
         'speedtest_url': data['result']['url']
     }
+    
     options = {}
-    if tags == '':
-        return None
-    else:
-        tags = tags.split(',')
-        for tag in tags:
-            tag = tag.strip()
-            options[tag] = tag_switch[tag]
-        return options
+    tags = tags.split(',')
+    for tag in tags:
+        # split the tag string, strip and add selected tags to {options} with corresponding tag_switch data
+        tag = tag.strip()
+        options[tag] = tag_switch[tag]
+    return options
 
 
 def format_for_influx(cliout):
@@ -110,8 +112,13 @@ def format_for_influx(cliout):
             }
         }
     ]
-
-    return influx_data
+    tags = tag_selection(data)
+    if tags is None:
+        return influx_data
+    else:
+        for measurement in influx_data:
+            measurement['tags'] = tags
+        return influx_data
 
 
 def main():
