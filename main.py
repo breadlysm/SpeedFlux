@@ -10,10 +10,13 @@ DB_PORT = int(os.environ.get('INFLUX_DB_PORT'))
 DB_USER = os.environ.get('INFLUX_DB_USER')
 DB_PASSWORD = os.environ.get('INFLUX_DB_PASSWORD')
 DB_DATABASE = os.environ.get('INFLUX_DB_DATABASE')
+DB_TAGS = os.environ.get('INFLUX_DB_TAGS')
 
 # Speedtest Settings
-TEST_INTERVAL = int(os.environ.get('SPEEDTEST_INTERVAL'))  # Time between tests (in seconds).
-TEST_FAIL_INTERVAL = int(os.environ.get('SPEEDTEST_FAIL_INTERVAL'))  # Time before retrying a failed Speedtest (in seconds).
+# Time between tests (in minutes, converts to seconds).
+TEST_INTERVAL = int(os.environ.get('SPEEDTEST_INTERVAL')) * 60
+# Time before retrying a failed Speedtest (in minutes, converts to seconds).
+TEST_FAIL_INTERVAL = int(os.environ.get('SPEEDTEST_FAIL_INTERVAL')) * 60
 
 influxdb_client = InfluxDBClient(
     DB_ADDRESS, DB_PORT, DB_USER, DB_PASSWORD, None)
@@ -26,12 +29,48 @@ def init_db():
         influxdb_client.create_database(
             DB_DATABASE)  # Create if does not exist.
     else:
-        influxdb_client.switch_database(DB_DATABASE)  # Switch to if does exist.
+        # Switch to if does exist.
+        influxdb_client.switch_database(DB_DATABASE)
+
+
 def pkt_loss(data):
     if 'packetLoss' in data.keys():
         return data['packetLoss']
-    else: 
+    else:
         return 0
+
+
+def tag_selection(data):
+    tags = DB_TAGS
+    if tags is None:
+        return None
+    # tag_switch takes in _data and attaches CLIoutput to more readable ids
+    tag_switch = {
+        'isp': data['isp'],
+        'interface': data['interface']['name'],
+        'internal_ip': data['interface']['internalIp'],
+        'interface_mac': data['interface']['macAddr'],
+        'vpn_enabled': (False if data['interface']['isVpn'] == 'false' else True),
+        'external_ip': data['interface']['externalIp'],
+        'server_id': data['server']['id'],
+        'server_name': data['server']['name'],
+        'server_location': data['server']['location'],
+        'server_country': data['server']['country'],
+        'server_host': data['server']['host'],
+        'server_port': data['server']['port'],
+        'server_ip': data['server']['ip'],
+        'speedtest_id': data['result']['id'],
+        'speedtest_url': data['result']['url']
+    }
+    
+    options = {}
+    tags = tags.split(',')
+    for tag in tags:
+        # split the tag string, strip and add selected tags to {options} with corresponding tag_switch data
+        tag = tag.strip()
+        options[tag] = tag_switch[tag]
+    return options
+
 
 def format_for_influx(cliout):
     data = json.loads(cliout)
@@ -73,8 +112,13 @@ def format_for_influx(cliout):
             }
         }
     ]
-
-    return influx_data
+    tags = tag_selection(data)
+    if tags is None:
+        return influx_data
+    else:
+        for measurement in influx_data:
+            measurement['tags'] = tags
+        return influx_data
 
 
 def main():
