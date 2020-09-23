@@ -4,7 +4,9 @@ This is a Python script that will continuously run the official Speedtest CLI ap
 
 This script will allow you to measure your internet connections speed and consistency over time. It uses env variables as configuration. It's as easy to use as telling your Docker server a 1 line command and you'll be set. Using Grafana you can start exploring this data easily. 
 
-![Grafana Dashboard](https://i.imgur.com/8cUdMy7.png)
+I built a grafana dashboard for this data that can be found at https://grafana.com/grafana/dashboards/13053
+
+![Grafana Dashboard](https://grafana.com/api/dashboards/13053/images/8976/image)
 
 There are some added features to allow some additional details that Ookla provides as tags on your data. Some examples are your current ISP, the interface being used, the server who hosted the test. Overtime, you could identify if some serers are performing better than others. 
 
