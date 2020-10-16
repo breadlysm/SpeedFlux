@@ -74,8 +74,8 @@ def tag_selection(data):
     return options
 
 
-def format_for_influx(cliout):
-    data = json.loads(cliout)
+def format_for_influx(data):
+    
     # There is additional data in the speedtest-cli output but it is likely not necessary to store.
     influx_data = [
         {
@@ -132,14 +132,16 @@ def main():
             speedtest = subprocess.run(
             ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json"], capture_output=True)
             print("Automatic server choice")	            
-        else : 
+        else: 
             speedtest = subprocess.run(
             ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json", "--server-id=" + SERVER_ID], capture_output=True)
-            print("Manual server choice : ID = " + SERVER_ID)			
+            print("Manual server choice : ID = " + SERVER_ID)	
+			
         if speedtest.returncode == 0:  # Speedtest was successful.
-            data = format_for_influx(speedtest.stdout)
             print("Speedtest Successful :")
-			print(speedtest.stdout)
+            data_json = json.loads(speedtest.stdout)
+            print("time: " + str(data_json['timestamp']) + " - ping: " + str(data_json['ping']['latency']) + " ms - download: " + str(data_json['download']['bandwidth']/125000) + " Mb/s - upload: " + str(data_json['upload']['bandwidth'] / 125000) + " Mb/s - isp: " + data_json['isp'] + " - ext. IP: " + data_json['interface']['externalIp'] + " - server id: " + str(data_json['server']['id']) + " (" + data_json['server']['name'] + " @ " + data_json['server']['location'] + ")")
+            data = format_for_influx(data_json)
             if influxdb_client.write_points(data) == True:
                 print("Data written to DB successfully")
                 time.sleep(TEST_INTERVAL)
