@@ -1,6 +1,6 @@
 FROM python:3.8-slim-buster
 
-LABEL maintainer="Josh Smith" \
+LABEL maintainer="Luc VOISE" \
     description="Original by Aiden Gilmartin. Speedtest to InfluxDB data bridge"
 
 # Install dependencies

@@ -17,6 +17,8 @@ DB_TAGS = os.environ.get('INFLUX_DB_TAGS')
 TEST_INTERVAL = int(os.environ.get('SPEEDTEST_INTERVAL')) * 60
 # Time before retrying a failed Speedtest (in minutes, converts to seconds).
 TEST_FAIL_INTERVAL = int(os.environ.get('SPEEDTEST_FAIL_INTERVAL')) * 60
+# Specific server ID
+SERVER_ID = os.environ.get('SPEEDTEST_SERVER_ID')
 
 influxdb_client = InfluxDBClient(
     DB_ADDRESS, DB_PORT, DB_USER, DB_PASSWORD, None)
@@ -125,9 +127,15 @@ def main():
     init_db()  # Setup the database if it does not already exist.
 
     while (1):  # Run a Speedtest and send the results to influxDB indefinitely.
-        speedtest = subprocess.run(
+        server_id = SERVER_ID
+        if not server_id:
+            speedtest = subprocess.run(
             ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json"], capture_output=True)
-
+            print("Automatic server choice")	            
+        else : 
+            speedtest = subprocess.run(
+            ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json", "--server-id=" + SERVER_ID], capture_output=True)
+            print("Manual server choice : ID = " + SERVER_ID)			
         if speedtest.returncode == 0:  # Speedtest was successful.
             data = format_for_influx(speedtest.stdout)
             print("Speedtest Successful:")
