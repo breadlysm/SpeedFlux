@@ -23,6 +23,7 @@ The variables available are:
 - INFLUX_DB_TAGS = *comma seperated list of tags. See below for options*
 - SPEEDTEST_INTERVAL = 60
 - SPEEDTEST_FAIL_INTERVAL = 5
+- SPEEDTEST_SERVER_ID = *id from https://c.speedtest.net/speedtest-servers-static.php*
 
 ### Variable Notes
 - Intervals are in minutes. *Script will convert it to seconds.*
@@ -58,7 +59,7 @@ Be aware that this script will automatically accept the license and GDPR stateme
 
 1. Build the container.
 
-    `docker build -t breadlysm/speedtest-to-influxdb ./`
+    `docker build -t sky007fr/speedtest-to-influxdb ./`
 
 2. Run the container.
     ```
@@ -70,13 +71,14 @@ Be aware that this script will automatically accept the license and GDPR stateme
     -e 'INFLUX_DB_DATABASE'='speedtest' \
     -e 'SPEEDTEST_INTERVAL'='1800' \
     -e 'SPEEDTEST_FAIL_INTERVAL'='60'  \
-    breadlysm/speedtest-to-influxdb
+    -e 'SPEEDTEST_SERVER_ID'='12746' \
+    sky007fr/speedtest-to-influxdb
     ```
 ### No Container
 
 1. Clone the repo 
 
-    `git clone https://github.com/breadlysm/speedtest-to-influxdb.git`   
+    `git clone https://github.com/sky007fr/speedtest-to-influxdb.git`   
 
 2. Configure the .env file in the repo or set the environment variables on your device. 
 
@@ -94,4 +96,4 @@ Be aware that this script will automatically accept the license and GDPR stateme
 
 
 
-This script looks to have been originally written by https://github.com/aidengilmartin/speedtest-to-influxdb/blob/master/main.py and I forked it from https://github.com/martinfrancois/speedtest-to-influxdb. They did the hard work, I've continued to modify it though to fit my needs.
+This script looks to have been originally written by https://github.com/aidengilmartin/speedtest-to-influxdb/blob/master/main.py and I forked it from https://github.com/breadlysm/speedtest-to-influxdb. They did the hard work, I've continued to modify it though to fit my needs.
