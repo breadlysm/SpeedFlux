@@ -138,17 +138,18 @@ def main():
             print("Manual server choice : ID = " + SERVER_ID)			
         if speedtest.returncode == 0:  # Speedtest was successful.
             data = format_for_influx(speedtest.stdout)
-            print("Speedtest Successful:")
+            print("Speedtest Successful :")
+			print(speedtest.stdout)
             if influxdb_client.write_points(data) == True:
                 print("Data written to DB successfully")
                 time.sleep(TEST_INTERVAL)
         else:  # Speedtest failed.
-            print("Speedtest Failed:")
+            print("Speedtest Failed :")
             print(speedtest.stderr)
             print(speedtest.stdout)
             time.sleep(TEST_FAIL_INTERVAL)
 
 
 if __name__ == '__main__':
-    print('Speedtest CLI Data Logger to InfluxDB')
+    print('Speedtest CLI data logger to InfluxDB started...')
     main()
