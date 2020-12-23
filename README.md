@@ -43,6 +43,7 @@ The Ookla speedtest app provides a nice set of data beyond the upload and downlo
 | server_id 	| The Speedtest ID of the server that  was used for testing 	|
 | server_name 	| Name of the Speedtest server used  for testing 	|
 | server_country 	| Country where the Speedtest server  resides 	|
+| server_location | Location where the Speedtest server  resides  |
 | server_host 	| Hostname of the Speedtest server 	|
 | server_port 	| Port used by the Speedtest server 	|
 | server_ip 	| Speedtest server's IP address 	|
