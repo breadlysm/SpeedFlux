@@ -11,7 +11,7 @@ DB_PORT = int(os.getenv('INFLUX_DB_PORT', '8086'))
 DB_USER = os.getenv('INFLUX_DB_USER', '')
 DB_PASSWORD = os.getenv('INFLUX_DB_PASSWORD', '')
 DB_DATABASE = os.getenv('INFLUX_DB_DATABASE', 'speedtests')
-DB_TAGS = os.getenv('INFLUX_DB_TAGS', '')
+DB_TAGS = os.getenv('INFLUX_DB_TAGS', None)
 
 # Speedtest Settings
 # Time between tests (in minutes, converts to seconds).
@@ -49,7 +49,6 @@ def tag_selection(data):
         return None
     # tag_switch takes in _data and attaches CLIoutput to more readable ids
     tag_switch = {
-        'namespace': NAMESPACE,
         'isp': data['isp'],
         'interface': data['interface']['name'],
         'internal_ip': data['interface']['internalIp'],
@@ -68,7 +67,6 @@ def tag_selection(data):
     }
     
     options = {}
-    tags = 'namespace, ' + tags
     tags = tags.split(',')
     for tag in tags:
         # split the tag string, strip and add selected tags to {options} with corresponding tag_switch data
