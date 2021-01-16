@@ -5,7 +5,7 @@ import os
 from influxdb import InfluxDBClient
 
 # InfluxDB Settings
-NAMESPACE = os.getenv('NAMESPACE', '')
+NAMESPACE = os.getenv('NAMESPACE', 'None')
 DB_ADDRESS = os.getenv('INFLUX_DB_ADDRESS', 'influxdb')
 DB_PORT = int(os.getenv('INFLUX_DB_PORT', '8086'))
 DB_USER = os.getenv('INFLUX_DB_USER', '')
@@ -66,12 +66,16 @@ def tag_selection(data):
         'speedtest_url': data['result']['url']
     }
     
+    if tags == '*':
+        return tag_switch
+
     options = {}
     tags = tags.split(',')
     for tag in tags:
         # split the tag string, strip and add selected tags to {options} with corresponding tag_switch data
         tag = tag.strip()
         options[tag] = tag_switch[tag]
+    
     return options
 
 
