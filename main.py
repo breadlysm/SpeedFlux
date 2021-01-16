@@ -4,21 +4,29 @@ import subprocess
 import os
 from influxdb import InfluxDBClient
 
+func getEnv(key, fallback string) string {
+    if value, ok := os.LookupEnv(key); ok {
+        return value
+    }
+    return fallback
+}
+
 # InfluxDB Settings
-DB_ADDRESS = os.environ.get('INFLUX_DB_ADDRESS')
-DB_PORT = int(os.environ.get('INFLUX_DB_PORT'))
-DB_USER = os.environ.get('INFLUX_DB_USER')
-DB_PASSWORD = os.environ.get('INFLUX_DB_PASSWORD')
-DB_DATABASE = os.environ.get('INFLUX_DB_DATABASE')
-DB_TAGS = os.environ.get('INFLUX_DB_TAGS')
+NAMESPACE = getEnv('NAMESPACE', '')
+DB_ADDRESS = getEnv('INFLUX_DB_ADDRESS', 'influxdb')
+DB_PORT = int(getEnv('INFLUX_DB_PORT', '8086'))
+DB_USER = getEnv('INFLUX_DB_USER', '')
+DB_PASSWORD = getEnv('INFLUX_DB_PASSWORD', '')
+DB_DATABASE = getEnv('INFLUX_DB_DATABASE', 'speedtests')
+DB_TAGS = getEnv('INFLUX_DB_TAGS', '')
 
 # Speedtest Settings
 # Time between tests (in minutes, converts to seconds).
-TEST_INTERVAL = int(os.environ.get('SPEEDTEST_INTERVAL')) * 60
+TEST_INTERVAL = int(getEnv('SPEEDTEST_INTERVAL', '5')) * 60
 # Time before retrying a failed Speedtest (in minutes, converts to seconds).
-TEST_FAIL_INTERVAL = int(os.environ.get('SPEEDTEST_FAIL_INTERVAL')) * 60
+TEST_FAIL_INTERVAL = int(getEnv('SPEEDTEST_FAIL_INTERVAL', '5')) * 60
 # Specific server ID
-SERVER_ID = os.environ.get('SPEEDTEST_SERVER_ID')
+SERVER_ID = getEnv('SPEEDTEST_SERVER_ID', '')
 
 influxdb_client = InfluxDBClient(
     DB_ADDRESS, DB_PORT, DB_USER, DB_PASSWORD, None)
@@ -48,6 +56,7 @@ def tag_selection(data):
         return None
     # tag_switch takes in _data and attaches CLIoutput to more readable ids
     tag_switch = {
+        'namespace': NAMESPACE,
         'isp': data['isp'],
         'interface': data['interface']['name'],
         'internal_ip': data['interface']['internalIp'],
@@ -66,6 +75,7 @@ def tag_selection(data):
     }
     
     options = {}
+    tags = 'namespace, ' + tags
     tags = tags.split(',')
     for tag in tags:
         # split the tag string, strip and add selected tags to {options} with corresponding tag_switch data
@@ -82,6 +92,7 @@ def format_for_influx(data):
             'measurement': 'ping',
             'time': data['timestamp'],
             'fields': {
+                'namespace': NAMESPACE,
                 'jitter': data['ping']['jitter'],
                 'latency': data['ping']['latency']
             }
@@ -90,6 +101,7 @@ def format_for_influx(data):
             'measurement': 'download',
             'time': data['timestamp'],
             'fields': {
+                'namespace': NAMESPACE,
                 # Byte to Megabit
                 'bandwidth': data['download']['bandwidth'] / 125000,
                 'bytes': data['download']['bytes'],
@@ -100,6 +112,7 @@ def format_for_influx(data):
             'measurement': 'upload',
             'time': data['timestamp'],
             'fields': {
+                'namespace': NAMESPACE,
                 # Byte to Megabit
                 'bandwidth': data['upload']['bandwidth'] / 125000,
                 'bytes': data['upload']['bytes'],
@@ -110,6 +123,7 @@ def format_for_influx(data):
             'measurement': 'packetLoss',
             'time': data['timestamp'],
             'fields': {
+                'namespace': NAMESPACE,
                 'packetLoss': pkt_loss(data)
             }
         }
