@@ -4,29 +4,22 @@ import subprocess
 import os
 from influxdb import InfluxDBClient
 
-func getEnv(key, fallback string) string {
-    if value, ok := os.LookupEnv(key); ok {
-        return value
-    }
-    return fallback
-}
-
 # InfluxDB Settings
-NAMESPACE = getEnv('NAMESPACE', '')
-DB_ADDRESS = getEnv('INFLUX_DB_ADDRESS', 'influxdb')
-DB_PORT = int(getEnv('INFLUX_DB_PORT', '8086'))
-DB_USER = getEnv('INFLUX_DB_USER', '')
-DB_PASSWORD = getEnv('INFLUX_DB_PASSWORD', '')
-DB_DATABASE = getEnv('INFLUX_DB_DATABASE', 'speedtests')
-DB_TAGS = getEnv('INFLUX_DB_TAGS', '')
+NAMESPACE = os.getenv('NAMESPACE', '')
+DB_ADDRESS = os.getenv('INFLUX_DB_ADDRESS', 'influxdb')
+DB_PORT = int(os.getenv('INFLUX_DB_PORT', '8086'))
+DB_USER = os.getenv('INFLUX_DB_USER', '')
+DB_PASSWORD = os.getenv('INFLUX_DB_PASSWORD', '')
+DB_DATABASE = os.getenv('INFLUX_DB_DATABASE', 'speedtests')
+DB_TAGS = os.getenv('INFLUX_DB_TAGS', '')
 
 # Speedtest Settings
 # Time between tests (in minutes, converts to seconds).
-TEST_INTERVAL = int(getEnv('SPEEDTEST_INTERVAL', '5')) * 60
+TEST_INTERVAL = int(os.getenv('SPEEDTEST_INTERVAL', '5')) * 60
 # Time before retrying a failed Speedtest (in minutes, converts to seconds).
-TEST_FAIL_INTERVAL = int(getEnv('SPEEDTEST_FAIL_INTERVAL', '5')) * 60
+TEST_FAIL_INTERVAL = int(os.getenv('SPEEDTEST_FAIL_INTERVAL', '5')) * 60
 # Specific server ID
-SERVER_ID = getEnv('SPEEDTEST_SERVER_ID', '')
+SERVER_ID = os.getenv('SPEEDTEST_SERVER_ID', '')
 
 influxdb_client = InfluxDBClient(
     DB_ADDRESS, DB_PORT, DB_USER, DB_PASSWORD, None)
