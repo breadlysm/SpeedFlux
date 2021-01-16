@@ -17,6 +17,8 @@ DB_TAGS = os.environ.get('INFLUX_DB_TAGS')
 TEST_INTERVAL = int(os.environ.get('SPEEDTEST_INTERVAL')) * 60
 # Time before retrying a failed Speedtest (in minutes, converts to seconds).
 TEST_FAIL_INTERVAL = int(os.environ.get('SPEEDTEST_FAIL_INTERVAL')) * 60
+# Specific server ID
+SERVER_ID = os.environ.get('SPEEDTEST_SERVER_ID')
 
 influxdb_client = InfluxDBClient(
     DB_ADDRESS, DB_PORT, DB_USER, DB_PASSWORD, None)
@@ -72,8 +74,8 @@ def tag_selection(data):
     return options
 
 
-def format_for_influx(cliout):
-    data = json.loads(cliout)
+def format_for_influx(data):
+    
     # There is additional data in the speedtest-cli output but it is likely not necessary to store.
     influx_data = [
         {
@@ -125,22 +127,31 @@ def main():
     init_db()  # Setup the database if it does not already exist.
 
     while (1):  # Run a Speedtest and send the results to influxDB indefinitely.
-        speedtest = subprocess.run(
+        server_id = SERVER_ID
+        if not server_id:
+            speedtest = subprocess.run(
             ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json"], capture_output=True)
-
+            print("Automatic server choice")	            
+        else: 
+            speedtest = subprocess.run(
+            ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json", "--server-id=" + SERVER_ID], capture_output=True)
+            print("Manual server choice : ID = " + SERVER_ID)	
+			
         if speedtest.returncode == 0:  # Speedtest was successful.
-            data = format_for_influx(speedtest.stdout)
-            print("Speedtest Successful:")
+            print("Speedtest Successful :")
+            data_json = json.loads(speedtest.stdout)
+            print("time: " + str(data_json['timestamp']) + " - ping: " + str(data_json['ping']['latency']) + " ms - download: " + str(data_json['download']['bandwidth']/125000) + " Mb/s - upload: " + str(data_json['upload']['bandwidth'] / 125000) + " Mb/s - isp: " + data_json['isp'] + " - ext. IP: " + data_json['interface']['externalIp'] + " - server id: " + str(data_json['server']['id']) + " (" + data_json['server']['name'] + " @ " + data_json['server']['location'] + ")")
+            data = format_for_influx(data_json)
             if influxdb_client.write_points(data) == True:
                 print("Data written to DB successfully")
                 time.sleep(TEST_INTERVAL)
         else:  # Speedtest failed.
-            print("Speedtest Failed:")
+            print("Speedtest Failed :")
             print(speedtest.stderr)
             print(speedtest.stdout)
             time.sleep(TEST_FAIL_INTERVAL)
 
 
 if __name__ == '__main__':
-    print('Speedtest CLI Data Logger to InfluxDB')
+    print('Speedtest CLI data logger to InfluxDB started...')
     main()
