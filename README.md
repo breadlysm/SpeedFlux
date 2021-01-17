@@ -30,6 +30,7 @@ The variables available are:
 - Intervals are in minutes. *Script will convert it to seconds.*
 - If any variables are not needed, don't declare them. Functions will operate with or without most variables. 
 - Tags should be input without quotes. *INFLUX_DB_TAGS = isp, interface, external_ip, server_name, speedtest_url*
+- NAMESPACE is used to collect data from multiple instances of the container into one database and select which you wish to view in Grafana. i.e. I have one monitoring my Starlink, the other my TELUS connection.
   
 ### Tag Options
 The Ookla speedtest app provides a nice set of data beyond the upload and download speed. The list is below. 
