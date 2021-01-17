@@ -15,15 +15,16 @@ There are some added features to allow some additional details that Ookla provid
 The InfluxDB connection settings are controlled by environment variables.
 
 The variables available are:
-- INFLUX_DB_ADDRESS = 192.168.1.xxx
-- INFLUX_DB_PORT = 8086
-- INFLUX_DB_USER = user
-- INFLUX_DB_PASSWORD = pass
-- INFLUX_DB_DATABASE = speedtest
-- INFLUX_DB_TAGS = *comma seperated list of tags. See below for options*
-- SPEEDTEST_INTERVAL = 60
-- SPEEDTEST_FAIL_INTERVAL = 5
-- SPEEDTEST_SERVER_ID = *id from https://c.speedtest.net/speedtest-servers-static.php*
+- NAMESPACE = default - None
+- INFLUX_DB_ADDRESS = default - influxdb
+- INFLUX_DB_PORT = default - 8086
+- INFLUX_DB_USER = default - {blank}
+- INFLUX_DB_PASSWORD = default - {blank}
+- INFLUX_DB_DATABASE = default - speedtests
+- INFLUX_DB_TAGS = default - None * See below for options, '*' widcard for all *
+- SPEEDTEST_INTERVAL = default - 5
+- SPEEDTEST_FAIL_INTERVAL = deafult - 5
+- SPEEDTEST_SERVER_ID = default - {blank} * id from https://c.speedtest.net/speedtest-servers-static.php *
 
 ### Variable Notes
 - Intervals are in minutes. *Script will convert it to seconds.*
@@ -60,41 +61,21 @@ Be aware that this script will automatically accept the license and GDPR stateme
 
 1. Build the container.
 
-    `docker build -t sky007fr/speedtest-to-influxdb ./`
+    `docker build -t qlustor/speedtest_ookla-to-influxdb ./`
 
 2. Run the container.
     ```
-    docker run -d --name speedtest-influx \
-    -e 'INFLUX_DB_ADDRESS'='_influxdb_host_' \
+    docker run -d -t --name speedflux \
+    -e 'NAMESPACE'='None' \
+    -e 'INFLUX_DB_ADDRESS'='influxdb' \
     -e 'INFLUX_DB_PORT'='8086' \
     -e 'INFLUX_DB_USER'='_influx_user_' \
     -e 'INFLUX_DB_PASSWORD'='_influx_pass_' \
-    -e 'INFLUX_DB_DATABASE'='speedtest' \
-    -e 'SPEEDTEST_INTERVAL'='1800' \
-    -e 'SPEEDTEST_FAIL_INTERVAL'='60'  \
+    -e 'INFLUX_DB_DATABASE'='speedtests' \
+    -e 'SPEEDTEST_INTERVAL'='5' \
+    -e 'SPEEDTEST_FAIL_INTERVAL'='5'  \
     -e 'SPEEDTEST_SERVER_ID'='12746' \
-    sky007fr/speedtest-to-influxdb
+    qlustor/speedtest_ookla-to-influxdb
     ```
-### No Container
-
-1. Clone the repo 
-
-    `git clone https://github.com/sky007fr/speedtest-to-influxdb.git`   
-
-2. Configure the .env file in the repo or set the environment variables on your device. 
-
-3. [Install the Speedtest CLI application by Ookla.](https://www.speedtest.net/apps/cli)
-
-    NOTE: The `speedtest-cli` package in distro repositories is an unofficial client. It will need to be uninstalled before installing the Ookla Speedtest CLI application with the directions on their website.
-
-4. Install the InfluxDB client for library from Python.
-
-    `pip install influxdb`
-
-5. Run the script.
-
-    `python3 ./main.py`
-
-
 
 This script looks to have been originally written by https://github.com/aidengilmartin/speedtest-to-influxdb/blob/master/main.py and I forked it from https://github.com/breadlysm/speedtest-to-influxdb. They did the hard work, I've continued to modify it though to fit my needs.
