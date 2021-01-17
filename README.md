@@ -4,7 +4,7 @@ This is a Python script that will continuously run the official Speedtest CLI ap
 
 This script will allow you to measure your internet connections speed and consistency over time. It uses env variables as configuration. It's as easy to use as telling your Docker server a 1 line command and you'll be set. Using Grafana you can start exploring this data easily. 
 
-I built a Grafana dashboard which has been exported into this repo as `GrafanaDash-Speedtests.json` to import into Grafana for your convenience.
+I built a Grafana dashboard which has been exported into this repo as `GrafanaDash-SpeedTests.json` to import into Grafana for your convenience.
 
 ![Grafana Dashboard](https://grafana.com/api/dashboards/13053/images/8976/image)
 
