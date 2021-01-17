@@ -45,11 +45,12 @@ def pkt_loss(data):
 
 def tag_selection(data):
     tags = DB_TAGS
-    if tags is None:
-        return None
+    options = {}
+
     # tag_switch takes in _data and attaches CLIoutput to more readable ids
     tag_switch = {
-        'isp': data['isp'],
+        'namespace': NAMESPACE,
+	'isp': data['isp'],
         'interface': data['interface']['name'],
         'internal_ip': data['interface']['internalIp'],
         'interface_mac': data['interface']['macAddr'],
@@ -66,10 +67,13 @@ def tag_selection(data):
         'speedtest_url': data['result']['url']
     }
     
-    if tags == '*':
+    if tags is None:
+        tags = 'namespace'
+    elif '*' in tags:
         return tag_switch
+    else:
+        tags = 'namespace, ' + tags
 
-    options = {}
     tags = tags.split(',')
     for tag in tags:
         # split the tag string, strip and add selected tags to {options} with corresponding tag_switch data
@@ -87,7 +91,6 @@ def format_for_influx(data):
             'measurement': 'ping',
             'time': data['timestamp'],
             'fields': {
-                'namespace': NAMESPACE,
                 'jitter': data['ping']['jitter'],
                 'latency': data['ping']['latency']
             }
@@ -96,7 +99,6 @@ def format_for_influx(data):
             'measurement': 'download',
             'time': data['timestamp'],
             'fields': {
-                'namespace': NAMESPACE,
                 # Byte to Megabit
                 'bandwidth': data['download']['bandwidth'] / 125000,
                 'bytes': data['download']['bytes'],
@@ -107,7 +109,6 @@ def format_for_influx(data):
             'measurement': 'upload',
             'time': data['timestamp'],
             'fields': {
-                'namespace': NAMESPACE,
                 # Byte to Megabit
                 'bandwidth': data['upload']['bandwidth'] / 125000,
                 'bytes': data['upload']['bytes'],
@@ -118,7 +119,6 @@ def format_for_influx(data):
             'measurement': 'packetLoss',
             'time': data['timestamp'],
             'fields': {
-                'namespace': NAMESPACE,
                 'packetLoss': pkt_loss(data)
             }
         }
