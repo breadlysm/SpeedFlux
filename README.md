@@ -22,9 +22,11 @@ The variables available are:
 - INFLUX_DB_PASSWORD = default - {blank}
 - INFLUX_DB_DATABASE = default - speedtests
 - INFLUX_DB_TAGS = default - None * See below for options, '*' widcard for all *
-- SPEEDTEST_INTERVAL = default - 5
-- SPEEDTEST_FAIL_INTERVAL = deafult - 5
+- SPEEDTEST_INTERVAL = default - 5 (minutes)
+- SPEEDTEST_FAIL_INTERVAL = deafult - 5 (now deprecated)
 - SPEEDTEST_SERVER_ID = default - {blank} * id from https://c.speedtest.net/speedtest-servers-static.php *
+- PING_INTERVAL = default - 5 (seconds)
+- PING_TARGETS = deafault - 1.1.1.1, 8.8.8.8 (csv of hosts to ping)
 
 ### Variable Notes
 - Intervals are in minutes. *Script will convert it to seconds.*
