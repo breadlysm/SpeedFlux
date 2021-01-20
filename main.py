@@ -191,7 +191,7 @@ def pingtest():
                     'target' : target
                 },
                 'fields': {
-                    'success' : pingtest.success(),
+                    'success' : int(pingtest.success()),
                     'rtt': pingtest.rtt_avg_ms
                 }
             }
