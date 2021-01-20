@@ -187,6 +187,7 @@ def pingtest():
                 'measurement': 'pings',
                 'time': timestamp,
                 'tags': {
+                    'namespace': NAMESPACE,
                     'target' : target
                 },
                 'fields': {
