@@ -5,6 +5,7 @@ import datetime
 import subprocess
 from pythonping import ping
 from influxdb import InfluxDBClient
+from multiprocessing import Process
 
 # InfluxDB Settings
 NAMESPACE = os.getenv('NAMESPACE', 'None')
@@ -191,8 +192,8 @@ def pingtest():
                     'target' : target
                 },
                 'fields': {
-                    'success' : int(pingtest.success()),
-                    'rtt': pingtest.rtt_avg_ms
+                    'success' : int(pingtest._responses[0].error_message is None),
+                    'rtt': float(0 if pingtest._responses[0].error_message is not None else pingtest.rtt_avg_ms)
                 }
             }
         ]
@@ -202,15 +203,24 @@ def pingtest():
             print("Ping Failed.")
 
 def main():
+    pPing = Process(target=pingtest)
+    pSpeed = Process(target=speedtest)
+
     init_db()  # Setup the database if it does not already exist.
 
-    loopcount = 1
+    loopcount = 0
     while (1):  # Run a Speedtest and send the results to influxDB indefinitely.
-        if loopcount % PING_INTERVAL == 0:
-            pingtest()
+        if loopcount == 0 or loopcount % PING_INTERVAL == 0:
+            if pPing.is_alive():
+                pPing.terminate()
+            pPing = Process(target=pingtest)
+            pPing.start()
 
-        if loopcount % TEST_INTERVAL == 0:
-            speedtest()
+        if loopcount == 0 or loopcount % TEST_INTERVAL == 0:
+            if pSpeed.is_alive():
+                pSpeed.terminate()
+            pSpeed = Process(target=speedtest)
+            pSpeed.start()
 
         if loopcount % ( PING_INTERVAL * TEST_INTERVAL ) == 0:
             loopcount = 0
