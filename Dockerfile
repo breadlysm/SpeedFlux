@@ -11,7 +11,7 @@ apt-get update && \
 apt-get -q -y install --no-install-recommends apt-utils gnupg1 apt-transport-https dirmngr && \
 \
 # Install Python packages
-pip3 install influxdb && \
+pip3 install pythonping influxdb && \
 \
 # Clean up
 apt-get -q -y autoremove && apt-get -q -y clean && \
