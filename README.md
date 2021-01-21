@@ -6,7 +6,7 @@ This script will allow you to measure your internet connections speed and consis
 
 I built a Grafana dashboard which has been exported into this repo as `GrafanaDash-SpeedTests.json` to import into Grafana for your convenience.
 
-![Grafana Dashboard](https://grafana.com/api/dashboards/13053/images/8976/image)
+![GrafanaDashboard](https://user-images.githubusercontent.com/945191/105287048-46f52a80-5b6c-11eb-9e57-038d63b67efb.png)
 
 There are some added features to allow some additional details that Ookla provides as tags on your data. Some examples are your current ISP, the interface being used, the server who hosted the test. Overtime, you could identify if some serers are performing better than others. 
 
@@ -23,10 +23,9 @@ The variables available are:
 - INFLUX_DB_DATABASE = default - speedtests
 - INFLUX_DB_TAGS = default - None * See below for options, '*' widcard for all *
 - SPEEDTEST_INTERVAL = default - 5 (minutes)
-- SPEEDTEST_FAIL_INTERVAL = deafult - 5 (now deprecated)
 - SPEEDTEST_SERVER_ID = default - {blank} * id from https://c.speedtest.net/speedtest-servers-static.php *
 - PING_INTERVAL = default - 5 (seconds)
-- PING_TARGETS = deafault - 1.1.1.1, 8.8.8.8 (csv of hosts to ping)
+- PING_TARGETS = default - 1.1.1.1, 8.8.8.8 (csv of hosts to ping)
 
 ### Variable Notes
 - Intervals are in minutes. *Script will convert it to seconds.*
