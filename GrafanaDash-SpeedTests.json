@@ -59,7 +59,7 @@
   "gnetId": 13053,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1611206261586,
+  "iteration": 1611279295418,
   "links": [],
   "panels": [
     {
@@ -833,7 +833,7 @@
         "y": 7
       },
       "id": 139,
-      "interval": "",
+      "interval": "5s",
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -874,7 +874,7 @@
               },
               {
                 "params": [],
-                "type": "min"
+                "type": "mean"
               }
             ]
           ],
@@ -964,45 +964,6 @@
       "steppedLine": false,
       "targets": [
         {
-          "alias": "Latency",
-          "groupBy": [
-            {
-              "params": [
-                "$interval"
-              ],
-              "type": "time"
-            }
-          ],
-          "measurement": "pings",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT mean(\"bytes\") FROM \"download\" WHERE $timeFilter GROUP BY time($__interval) fill(0)",
-          "rawQuery": false,
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "rtt"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "namespace",
-              "operator": "=~",
-              "value": "/^$namespace$/"
-            }
-          ]
-        },
-        {
           "alias": "Uptime",
           "groupBy": [
             {
@@ -1029,7 +990,7 @@
               },
               {
                 "params": [],
-                "type": "min"
+                "type": "mean"
               }
             ]
           ],
@@ -1041,6 +1002,97 @@
             }
           ],
           "tz": ""
+        },
+        {
+          "alias": "Latency",
+          "groupBy": [
+            {
+              "params": [
+                "$interval"
+              ],
+              "type": "time"
+            }
+          ],
+          "measurement": "pings",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT mean(\"rtt\") FROM \"pings\" WHERE (\"namespace\" =~ /^$namespace$/) AND success = 1 AND $timeFilter GROUP BY time($interval)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "rtt"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "namespace",
+              "operator": "=~",
+              "value": "/^$namespace$/"
+            }
+          ]
+        },
+        {
+          "alias": "",
+          "groupBy": [
+            {
+              "params": [
+                "$interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "target"
+              ],
+              "type": "tag"
+            }
+          ],
+          "hide": true,
+          "measurement": "pings",
+          "orderByTime": "ASC",
+          "policy": "autogen",
+          "query": "SELECT mean(\"rtt\") AS \"Latency\" FROM \"pings\" WHERE (\"namespace\" =~ /^$namespace$/) AND success = 1 AND $timeFilter GROUP BY time($interval), \"target\"",
+          "rawQuery": true,
+          "refId": "C",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "rtt"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              },
+              {
+                "params": [
+                  "Latency"
+                ],
+                "type": "alias"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "namespace",
+              "operator": "=~",
+              "value": "/^$namespace$/"
+            }
+          ]
         }
       ],
       "thresholds": [],
@@ -1125,7 +1177,7 @@
         "y": 10
       },
       "id": 140,
-      "interval": "",
+      "interval": "5s",
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -1154,6 +1206,8 @@
           "measurement": "pings",
           "orderByTime": "ASC",
           "policy": "default",
+          "query": "SELECT mean(\"rtt\") FROM \"pings\" WHERE (\"namespace\" =~ /^$namespace$/) AND success = 1 AND $timeFilter GROUP BY time($__interval)",
+          "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -2706,7 +2760,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 36
+            "y": 37
           },
           "id": 130,
           "options": {
@@ -2892,7 +2946,7 @@
       "type": "row"
     }
   ],
-  "refresh": "",
+  "refresh": false,
   "schemaVersion": 26,
   "style": "dark",
   "tags": [],
@@ -2944,5 +2998,5 @@
   "timezone": "",
   "title": "SpeedTests",
   "uid": "kLXTiedGz",
-  "version": 30
+  "version": 38
 }
