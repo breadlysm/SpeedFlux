@@ -1,6 +1,6 @@
 FROM python:3.8-slim-buster
-LABEL maintainer="Team QLUSTOR <team@qlustor.com>" \
-    description="Original by Aiden Gilmartin. Speedtest to InfluxDB data bridge"
+LABEL maintainer="Breadlysm" \
+    description="Original by Aiden Gilmartin. Maintained by Breadlysm"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
