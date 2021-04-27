@@ -1,12 +1,18 @@
+
+
+
 # Speedtest to InfluxDB
+---
 
 This is a Python script that will continuously run the official Speedtest CLI application by Ookla, takes input from environment variables, formats data and writes it to an InfluxDB database.
 
 This script will allow you to measure your internet connections speed and consistency over time. It uses env variables as configuration. It's as easy to use as telling your Docker server a 1 line command and you'll be set. Using Grafana you can start exploring this data easily. 
 
-I built a Grafana dashboard which has been exported into this repo as `GrafanaDash-SpeedTests.json` to import into Grafana for your convenience.
 
-![GrafanaDashboard](https://user-images.githubusercontent.com/945191/105287048-46f52a80-5b6c-11eb-9e57-038d63b67efb.png)
+I built a grafana dashboard for this data that can be found at https://grafana.com/grafana/dashboards/13053. Additionally, other contributors have modified this dash and included a JSON file of those modifications. Use `GrafanaDash-SpeedTests.json` to import that dash into Grafana.
+
+![OriginalDash](https://user-images.githubusercontent.com/3665468/116284820-8038ca00-a75b-11eb-9b30-4a9d26434f8d.png)
+![Variant](https://user-images.githubusercontent.com/945191/105287048-46f52a80-5b6c-11eb-9e57-038d63b67efb.png)
 
 There are some added features to allow some additional details that Ookla provides as tags on your data. Some examples are your current ISP, the interface being used, the server who hosted the test. Overtime, you could identify if some serers are performing better than others. 
 
@@ -63,11 +69,11 @@ Be aware that this script will automatically accept the license and GDPR stateme
 
 1. Build the container.
 
-    `docker build -t qlustor/speedtest_ookla-to-influxdb ./`
+    `docker build -t breadlysm/speedtest-to-influxdb ./`
 
 2. Run the container.
     ```
-    docker run -d -t --name speedflux \
+     docker run -d -t --name speedflux \
     -e 'NAMESPACE'='None' \
     -e 'INFLUX_DB_ADDRESS'='influxdb' \
     -e 'INFLUX_DB_PORT'='8086' \
@@ -77,7 +83,16 @@ Be aware that this script will automatically accept the license and GDPR stateme
     -e 'SPEEDTEST_INTERVAL'='5' \
     -e 'SPEEDTEST_FAIL_INTERVAL'='5'  \
     -e 'SPEEDTEST_SERVER_ID'='12746' \
-    qlustor/speedtest_ookla-to-influxdb
+    breadlysm/speedtest-to-influxdb
     ```
+
+<br>
+<br>
+
+<sup><sub>**Pull Requests**</sub></sup>
+
+<sub><sup>I will accept pull requests as long as core functionality and settings remain the same. Changes should be in addition to corefunctionality. I don't want a situation where a script auto-updates and ruins months/years of data or causes other headaches. Feel free to add yourself as contributing but I ask that links to containers do not change.</sub></sup>
+
+---
 
 This script looks to have been originally written by https://github.com/aidengilmartin/speedtest-to-influxdb/blob/master/main.py and I forked it from https://github.com/breadlysm/speedtest-to-influxdb. They did the hard work, I've continued to modify it though to fit my needs.
