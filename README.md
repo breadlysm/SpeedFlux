@@ -4,9 +4,9 @@ This is a Python script that will continuously run the official Speedtest CLI ap
 
 This script will allow you to measure your internet connections speed and consistency over time. It uses env variables as configuration. It's as easy to use as telling your Docker server a 1 line command and you'll be set. Using Grafana you can start exploring this data easily. 
 
-I built a grafana dashboard for this data that can be found at https://grafana.com/grafana/dashboards/13053
+I built a Grafana dashboard which has been exported into this repo as `GrafanaDash-SpeedTests.json` to import into Grafana for your convenience.
 
-![Grafana Dashboard](https://grafana.com/api/dashboards/13053/images/8976/image)
+![GrafanaDashboard](https://user-images.githubusercontent.com/945191/105287048-46f52a80-5b6c-11eb-9e57-038d63b67efb.png)
 
 There are some added features to allow some additional details that Ookla provides as tags on your data. Some examples are your current ISP, the interface being used, the server who hosted the test. Overtime, you could identify if some serers are performing better than others. 
 
@@ -15,19 +15,23 @@ There are some added features to allow some additional details that Ookla provid
 The InfluxDB connection settings are controlled by environment variables.
 
 The variables available are:
-- INFLUX_DB_ADDRESS = 192.168.1.xxx
-- INFLUX_DB_PORT = 8086
-- INFLUX_DB_USER = user
-- INFLUX_DB_PASSWORD = pass
-- INFLUX_DB_DATABASE = speedtest
-- INFLUX_DB_TAGS = *comma seperated list of tags. See below for options*
-- SPEEDTEST_INTERVAL = 60
-- SPEEDTEST_FAIL_INTERVAL = 5
+- NAMESPACE = default - None
+- INFLUX_DB_ADDRESS = default - influxdb
+- INFLUX_DB_PORT = default - 8086
+- INFLUX_DB_USER = default - {blank}
+- INFLUX_DB_PASSWORD = default - {blank}
+- INFLUX_DB_DATABASE = default - speedtests
+- INFLUX_DB_TAGS = default - None * See below for options, '*' widcard for all *
+- SPEEDTEST_INTERVAL = default - 5 (minutes)
+- SPEEDTEST_SERVER_ID = default - {blank} * id from https://c.speedtest.net/speedtest-servers-static.php *
+- PING_INTERVAL = default - 5 (seconds)
+- PING_TARGETS = default - 1.1.1.1, 8.8.8.8 (csv of hosts to ping)
 
 ### Variable Notes
 - Intervals are in minutes. *Script will convert it to seconds.*
 - If any variables are not needed, don't declare them. Functions will operate with or without most variables. 
 - Tags should be input without quotes. *INFLUX_DB_TAGS = isp, interface, external_ip, server_name, speedtest_url*
+- NAMESPACE is used to collect data from multiple instances of the container into one database and select which you wish to view in Grafana. i.e. I have one monitoring my Starlink, the other my TELUS connection.
   
 ### Tag Options
 The Ookla speedtest app provides a nice set of data beyond the upload and download speed. The list is below. 
@@ -59,40 +63,21 @@ Be aware that this script will automatically accept the license and GDPR stateme
 
 1. Build the container.
 
-    `docker build -t breadlysm/speedtest-to-influxdb ./`
+    `docker build -t qlustor/speedtest_ookla-to-influxdb ./`
 
 2. Run the container.
     ```
-    docker run -d --name speedtest-influx \
-    -e 'INFLUX_DB_ADDRESS'='_influxdb_host_' \
+    docker run -d -t --name speedflux \
+    -e 'NAMESPACE'='None' \
+    -e 'INFLUX_DB_ADDRESS'='influxdb' \
     -e 'INFLUX_DB_PORT'='8086' \
     -e 'INFLUX_DB_USER'='_influx_user_' \
     -e 'INFLUX_DB_PASSWORD'='_influx_pass_' \
-    -e 'INFLUX_DB_DATABASE'='speedtest' \
-    -e 'SPEEDTEST_INTERVAL'='1800' \
-    -e 'SPEEDTEST_FAIL_INTERVAL'='60'  \
-    breadlysm/speedtest-to-influxdb
+    -e 'INFLUX_DB_DATABASE'='speedtests' \
+    -e 'SPEEDTEST_INTERVAL'='5' \
+    -e 'SPEEDTEST_FAIL_INTERVAL'='5'  \
+    -e 'SPEEDTEST_SERVER_ID'='12746' \
+    qlustor/speedtest_ookla-to-influxdb
     ```
-### No Container
 
-1. Clone the repo 
-
-    `git clone https://github.com/breadlysm/speedtest-to-influxdb.git`   
-
-2. Configure the .env file in the repo or set the environment variables on your device. 
-
-3. [Install the Speedtest CLI application by Ookla.](https://www.speedtest.net/apps/cli)
-
-    NOTE: The `speedtest-cli` package in distro repositories is an unofficial client. It will need to be uninstalled before installing the Ookla Speedtest CLI application with the directions on their website.
-
-4. Install the InfluxDB client for library from Python.
-
-    `pip install influxdb`
-
-5. Run the script.
-
-    `python3 ./main.py`
-
-
-
-This script looks to have been originally written by https://github.com/aidengilmartin/speedtest-to-influxdb/blob/master/main.py and I forked it from https://github.com/martinfrancois/speedtest-to-influxdb. They did the hard work, I've continued to modify it though to fit my needs.
+This script looks to have been originally written by https://github.com/aidengilmartin/speedtest-to-influxdb/blob/master/main.py and I forked it from https://github.com/breadlysm/speedtest-to-influxdb. They did the hard work, I've continued to modify it though to fit my needs.
