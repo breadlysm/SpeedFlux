@@ -4,21 +4,25 @@ LABEL maintainer="Breadlysm" \
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN true &&\
-\
 # Install dependencies
-apt-get update && \
-apt-get -q -y install --no-install-recommends apt-utils gnupg1 apt-transport-https dirmngr && \
-\
-# Install Python packages
-pip3 install pythonping influxdb && \
-\
-# Clean up
-apt-get -q -y autoremove && apt-get -q -y clean && \
-rm -rf /var/lib/apt/lists/*
+RUN apt-get update 
+RUN apt-get -q -y install --no-install-recommends apt-utils gnupg1 apt-transport-https dirmngr
 
-# Final setup & execution
+# Install Speedtest
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
+RUN echo "deb https://ookla.bintray.com/debian buster main" | tee  /etc/apt/sources.list.d/speedtest.list
+RUN apt-get update && apt-get -q -y install speedtest
+
+# Clean up
+RUN apt-get -q -y autoremove && apt-get -q -y clean 
+RUN rm -rf /var/lib/apt/lists/*
+
+# Copy and final setup
 ADD . /app
 WORKDIR /app
-ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
-CMD ["main.py"]
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt 
+COPY . .
+
+# Excetution
+CMD ["python", "main.py"]
