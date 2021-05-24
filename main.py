@@ -16,16 +16,13 @@ DB_PASSWORD = os.getenv('INFLUX_DB_PASSWORD', '')
 DB_DATABASE = os.getenv('INFLUX_DB_DATABASE', 'speedtests')
 DB_TAGS = os.getenv('INFLUX_DB_TAGS', None)
 PING_TARGETS = os.getenv('PING_TARGETS', '1.1.1.1, 8.8.8.8')
-
 # Speedtest Settings
 # Time between tests (in minutes, converts to seconds).
-TEST_INTERVAL = int(os.getenv('SPEEDTEST_INTERVAL', '5')) * 60
-# Time before retrying a failed Speedtest (in minutes, converts to seconds).
-TEST_FAIL_INTERVAL = int(os.getenv('SPEEDTEST_FAIL_INTERVAL', '5')) * 60
+TEST_INTERVAL = int(os.getenv('SPEEDTEST_INTERVAL', '180')) * 60
 # Specific server ID
 SERVER_ID = os.getenv('SPEEDTEST_SERVER_ID', '')
 # Time between ping tests (in seconds).
-PING_INTERVAL = int(os.getenv('PING_INTERVAL', '5'))
+PING_INTERVAL = int(os.getenv('PING_INTERVAL', '120'))
 
 influxdb_client = InfluxDBClient(
     DB_ADDRESS, DB_PORT, DB_USER, DB_PASSWORD, None)
@@ -175,7 +172,6 @@ def speedtest():
         print("Speedtest Failed :")
         print(speedtest.stderr)
         print(speedtest.stdout)
-#        time.sleep(TEST_FAIL_INTERVAL)
 
 
 def pingtest():
