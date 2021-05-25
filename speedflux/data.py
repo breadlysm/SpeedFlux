@@ -16,17 +16,17 @@ def speedtest(config):
         log.info("Manual server choice : ID = " + config['server_id'])
 
     if speedtest.returncode == 0:  # Speedtest was successful.
-        log.info("Speedtest Successful :")
+        log.info("Speedtest Successful...Writing to Influx")
         data_json = json.loads(speedtest.stdout)
-        log.info(F"""time: {data_json['timestamp']} - 
-            ping: {data_json['ping']['latency']}ms - 
-            download: {data_json['download']['bandwidth']/125000}Mb/s - 
-            upload: {data_json['upload']['bandwidth'] / 125000}Mb/s - 
-            isp: {data_json['isp']} - 
-            ext. IP: {data_json['interface']['externalIp']} - 
-            server id: {data_json['server']['id']} ({data_json['server']['name']} @ {data_json['server']['location']}) - 
+        log.info(F"""time: {data_json['timestamp']}
+            ping: {data_json['ping']['latency']}ms
+            download: {data_json['download']['bandwidth']/125000}Mb/s
+            upload: {data_json['upload']['bandwidth'] / 125000}Mb/s
+            isp: {data_json['isp']}
+            ext. IP: {data_json['interface']['externalIp']}
+            server id: {data_json['server']['id']} ({data_json['server']['name']} @ {data_json['server']['location']})
             """)
-        config['influx'].process_data(data)
+        config['influx'].process_data(data_json)
     else:  # Speedtest failed.
         log.info("Speedtest Failed :")
         log.debug(speedtest.stderr)
@@ -37,6 +37,7 @@ def pingtest(config):
     timestamp = datetime.datetime.utcnow()
     for target in config['ping_targets'].split(','):
         target = target.strip()
+        log.debug('Running ping test...')
         pingtest = ping(target, verbose=False, timeout=1, count=1, size=128)
         data = [
             {
@@ -53,4 +54,5 @@ def pingtest(config):
         ]
         if config['namespace']:
             data[0]['tags']['namespace'] = config['namespace']
-        config['influx'].write(data)
+        config['influx'].write(data, data_type='Ping')
+        
