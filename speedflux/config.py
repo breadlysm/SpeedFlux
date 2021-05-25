@@ -17,6 +17,7 @@ def get_config():
     SERVER_ID = os.getenv('SPEEDTEST_SERVER_ID', '')
     # Time between ping tests (in seconds).
     PING_INTERVAL = int(os.getenv('PING_INTERVAL', '120'))
+    LOG_TYPE = os.getenv('LOG_TYPE', 'info')
     config = {
         'namespace': NAMESPACE,
         'db_host': DB_ADDRESS,
@@ -28,6 +29,7 @@ def get_config():
         'ping_targets': PING_TARGETS,
         'test_interval': TEST_INTERVAL,
         'ping_interval': PING_INTERVAL,
-        'server_id': SERVER_ID
+        'server_id': SERVER_ID,
+        'log_level': LOG_TYPE
     }
     return config

@@ -1,35 +1,41 @@
 import subprocess
 from pythonping import ping
-from influxdb import InfluxDBClient
 from multiprocessing import Process
+import json
+import datetime
+from speedflux.logs import log
 
-
-def speedtest():
-    if not SERVER_ID:
+def speedtest(config):
+    if not config['server_id']:
         speedtest = subprocess.run(
         ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json"], capture_output=True)
-        print("Automatic server choice")
+        log.info("Automatic server choice")
     else:
         speedtest = subprocess.run(
-        ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json", "--server-id=" + SERVER_ID], capture_output=True)
-        print("Manual server choice : ID = " + SERVER_ID)
+        ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json", "--server-id=" + config['server_id']], capture_output=True)
+        log.info("Manual server choice : ID = " + config['server_id'])
 
     if speedtest.returncode == 0:  # Speedtest was successful.
-        print("Speedtest Successful :")
+        log.info("Speedtest Successful :")
         data_json = json.loads(speedtest.stdout)
-        print("time: " + str(data_json['timestamp']) + " - ping: " + str(data_json['ping']['latency']) + " ms - download: " + str(data_json['download']['bandwidth']/125000) + " Mb/s - upload: " + str(data_json['upload']['bandwidth'] / 125000) + " Mb/s - isp: " + data_json['isp'] + " - ext. IP: " + data_json['interface']['externalIp'] + " - server id: " + str(data_json['server']['id']) + " (" + data_json['server']['name'] + " @ " + data_json['server']['location'] + ")")
-        data = format_for_influx(data_json)
-        if influxdb_client.write_points(data) == True:
-            print("Data written to DB successfully")
+        log.info(F"""time: {data_json['timestamp']} - 
+            ping: {data_json['ping']['latency']}ms - 
+            download: {data_json['download']['bandwidth']/125000}Mb/s - 
+            upload: {data_json['upload']['bandwidth'] / 125000}Mb/s - 
+            isp: {data_json['isp']} - 
+            ext. IP: {data_json['interface']['externalIp']} - 
+            server id: {data_json['server']['id']} ({data_json['server']['name']} @ {data_json['server']['location']}) - 
+            """)
+        config['influx'].process_data(data)
     else:  # Speedtest failed.
-        print("Speedtest Failed :")
-        print(speedtest.stderr)
-        print(speedtest.stdout)
+        log.info("Speedtest Failed :")
+        log.debug(speedtest.stderr)
+        log.debug(speedtest.stdout)
 
 
-def pingtest():
+def pingtest(config):
     timestamp = datetime.datetime.utcnow()
-    for target in PING_TARGETS.split(','):
+    for target in config['ping_targets'].split(','):
         target = target.strip()
         pingtest = ping(target, verbose=False, timeout=1, count=1, size=128)
         data = [
@@ -37,7 +43,6 @@ def pingtest():
                 'measurement': 'pings',
                 'time': timestamp,
                 'tags': {
-                    'namespace': NAMESPACE,
                     'target' : target
                 },
                 'fields': {
@@ -46,7 +51,6 @@ def pingtest():
                 }
             }
         ]
-        if influxdb_client.write_points(data) == True:
-            print("Ping data written to DB successfully")
-        else:  # Speedtest failed.
-            print("Ping Failed.")
+        if config['namespace']:
+            data[0]['tags']['namespace'] = config['namespace']
+        config['influx'].write(data)

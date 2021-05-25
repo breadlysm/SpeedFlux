@@ -1,48 +1,39 @@
 import os
 import time
-import json
-import datetime
+
 from speedflux.config import get_config
 from speedflux.influx import Influx
-
-config = get_config()
-influxdb_client = Influx(config)
-
-
-
-def pkt_loss(data):
-    if 'packetLoss' in data.keys():
-        return int(data['packetLoss'])
-    else:
-        return 0
-
+from multiprocessing import Process
+from speedflux.data import speedtest, pingtest
+from speedflux.logs import log
 
 def main():
-    pPing = Process(target=pingtest)
-    pSpeed = Process(target=speedtest)
-
-    init_db()  # Setup the database if it does not already exist.
+    config = get_config()
+    influx = Influx(config)
+    config['influx'] = influx
+    pPing = Process(target=pingtest, args=(config,))
+    pSpeed = Process(target=speedtest, args=(config,))
 
     loopcount = 0
     while (1):  # Run a Speedtest and send the results to influxDB indefinitely.
-        if loopcount == 0 or loopcount % PING_INTERVAL == 0:
+        if loopcount == 0 or loopcount % config['ping_interval'] == 0:
             if pPing.is_alive():
                 pPing.terminate()
-            pPing = Process(target=pingtest)
+            pPing = Process(target=pingtest, args=(config,))
             pPing.start()
 
-        if loopcount == 0 or loopcount % TEST_INTERVAL == 0:
+        if loopcount == 0 or loopcount % config['test_interval'] == 0:
             if pSpeed.is_alive():
                 pSpeed.terminate()
-            pSpeed = Process(target=speedtest)
+            pSpeed = Process(target=speedtest, args=(config,))
             pSpeed.start()
 
-        if loopcount % ( PING_INTERVAL * TEST_INTERVAL ) == 0:
+        if loopcount % ( config['ping_interval'] * config['test_interval'] ) == 0:
             loopcount = 0
 
         time.sleep(1)
         loopcount += 1
 
 if __name__ == '__main__':
-    print('Speedtest CLI data logger to InfluxDB started...')
+    log.info('Speedtest CLI data logger to InfluxDB started...')
     main()
