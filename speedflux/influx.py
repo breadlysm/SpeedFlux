@@ -84,16 +84,16 @@ class Influx:
 
         return influx_data
     
-    def write(self, data):
+    def write(self, data, data_type='Speetest'):
         try:
             if self.client.write_points(data):
-               log.info("Data written successfully")
+               log.info(F"{data_type} data written successfully")
                log.debug(F"Wrote `{data}` to Influx")
             else:
-                raise Exception("Write points did not complete")
+                raise Exception(F"{data_type} write points did not complete")
         except Exception as err:
             log.info(F"{err}")
-            log.debug(F"Wrote `{data}` to Influx")
+            log.debug(F"Wrote {data_type} points `{data}` to Influx")
     
     def tag_selection(self, data):
         tags = self.config['db_tags']
