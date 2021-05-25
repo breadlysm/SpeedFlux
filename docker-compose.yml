@@ -13,5 +13,6 @@ services:
         - SPEEDTEST_INTERVAL=150 # Minutes between speedtest updates. 
         - PING_INTERVAL=60 # Seconds between ping updates
         - PING_TARGETS=1.1.1.1, 8.8.8.8 # csv of hostnames to ping
+        - LOG_TYPE=info
     image: speedflux
   
