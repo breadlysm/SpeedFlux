@@ -27,6 +27,7 @@ docker pull ghcr.io/breadlysm/speedflux:latest
 docker pull breadlysm/speedtest-to-influxdb
 ```
 
+Also see [Using docker run](https://github.com/breadlysm/speedtest-to-influxdb#docker-run) you can replace the container with `breadlysm/speedtest-to-influxdb` with `ghcr.io/breadlysm/speedflux` and that command will work the same. 
 
 ## Configuring the script
 
@@ -78,19 +79,14 @@ Be aware that this script will automatically accept the license and GDPR stateme
 ## Running the Script
 
 ### Docker Compose
-If you already have Docker and Docker Compose installed, the quickest way to start using this is 
-Quickest way to get you up 
+If you already have Docker and Docker Compose installed, you can use the included docker compose file. 
 1. clone the github repo
 2. navigate to the folder 
 3. edit the `docker-compose.yml` file with your settings
 4. then run `docker compose up`
 ### Docker Run 
 
-1. Build the container.
-
-    `docker build -t breadlysm/speedtest-to-influxdb ./`
-
-2. Run the container.
+1. Run the container.
     ```
      docker run -d -t --name speedflux \
     -e 'NAMESPACE'='None' \
@@ -104,7 +100,7 @@ Quickest way to get you up
     -e 'SPEEDTEST_SERVER_ID'='12746' \
     breadlysm/speedtest-to-influxdb
     ```
-
+- You can also use `ghcr.io/breadlysm/speedflux` as GitHub containers is enabled. 
 <br>
 <br>
 
