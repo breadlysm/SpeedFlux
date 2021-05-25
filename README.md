@@ -1,20 +1,20 @@
 
 
 
-# Speedtest to InfluxDB
+# SpeedFlux
 ---
+SpeedFlux will monitor your internet speeds at a regular interval and export all of the data to InfluxDB. 
 
-This is a Python script that will continuously run the official Speedtest CLI application by Ookla, takes input from environment variables, formats data and writes it to an InfluxDB database.
+It is mostly written in Python but, uses Ookla's SpeedTest CLI. This is a CLI app. We use Python subprocess to utilize this tool.
 
-This script will allow you to measure your internet connections speed and consistency over time. It uses env variables as configuration. It's as easy to use as telling your Docker server a 1 line command and you'll be set. Using Grafana you can start exploring this data easily. 
+There are other Python packages out there that can use Ookla's systems but they are not official and don't provide the same data. This method is consistent and also provides several additional pieces of info. THat extra info allows us to tag the data we send to InfluxDB many different ways. 
 
+You can see on the Grafana image below some examples of those tags such as averageing the speeds of different testing sites and rank them. 
+Other uses may tagging different interfaces and running an instance for each. [You can view those tagging options below](https://github.com/breadlysm/speedtest-to-influxdb/blob/master/README.md#tag-options) 
 
-I built a grafana dashboard for this data that can be found at https://grafana.com/grafana/dashboards/13053. Additionally, other contributors have modified this dash and included a JSON file of those modifications. Use `GrafanaDash-SpeedTests.json` to import that dash into Grafana.
+ The grafana image below is a prebuilt dashboard you can find at https://grafana.com/grafana/dashboards/13053. The json is also available in the report named `speedflux-grafana.json`. Additionally, other contributors have modified this dash and included a JSON file of those modifications. Use `GrafanaDash-SpeedTests.json` to import that dash into Grafana.
 
 ![OriginalDash](https://user-images.githubusercontent.com/3665468/116284820-8038ca00-a75b-11eb-9b30-4a9d26434f8d.png)
-![Variant](https://user-images.githubusercontent.com/945191/105287048-46f52a80-5b6c-11eb-9e57-038d63b67efb.png)
-
-There are some added features to allow some additional details that Ookla provides as tags on your data. Some examples are your current ISP, the interface being used, the server who hosted the test. Overtime, you could identify if some serers are performing better than others. 
 
 ## Configuring the script
 
@@ -65,7 +65,14 @@ Be aware that this script will automatically accept the license and GDPR stateme
 
 ## Running the Script
 
-### Ideal option, run as a Docker container. 
+### Docker Compose
+If you already have Docker and Docker Compose installed, the quickest way to start using this is 
+Quickest way to get you up 
+1. clone the github repo
+2. navigate to the folder 
+3. edit the `docker-compose.yml` file with your settings
+4. then run `docker compose up`
+### Docker Run 
 
 1. Build the container.
 
