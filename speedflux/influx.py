@@ -1,19 +1,25 @@
 from influxdb import InfluxDBClient
-from speedflux import log
+from speedflux.logs import log
 
 class Influx:
     def __init__(self, config):
-        self.client = InfluxDBClient(config['db_host'] , config['db_port'], config['db_user'], config['db_pass'], None)
+        self.config = config
+        self.client = InfluxDBClient(self.config['db_host'], 
+                                    self.config['db_port'], 
+                                    self.config['db_user'], 
+                                    self.config['db_pass'], 
+                                    None)
+        self.init_db()
 
-    def init_db():
-        databases = influxdb_client.get_list_database()
+    def init_db(self):
+        databases = self.client.get_list_database()
 
-        if len(list(filter(lambda x: x['name'] == DB_DATABASE, databases))) == 0:
-            influxdb_client.create_database(
-                DB_DATABASE)  # Create if does not exist.
+        if len(list(filter(lambda x: x['name'] == self.config['db_name'], databases))) == 0:
+            self.client.create_database(
+                self.config['db_name'])  # Create if does not exist.
         else:
             # Switch to if does exist.
-            influxdb_client.switch_database(DB_DATABASE)
+            self.client.switch_database(self.config['db_name'])
 
     def format_data(self, data):
         # There is additional data in the speedtest-cli output but it is likely not necessary to store.
@@ -22,8 +28,8 @@ class Influx:
                 'measurement': 'ping',
                 'time': data['timestamp'],
                 'fields': {
-                    'jitter': data['ping']['jitter'],
-                    'latency': data['ping']['latency']
+                    'jitter': data['ping'].get('jitter', 0),
+                    'latency': data['ping'].get('latency',0)
                 }
             },
             {
@@ -31,8 +37,8 @@ class Influx:
                 'time': data['timestamp'],
                 'fields': {
                     # Byte to Megabit
-                    'bandwidth': data['download']['bandwidth'] / 125000,
-                    'bytes': data['download']['bytes'],
+                    'bandwidth': data['download'].get('bandwidth', 0) / 125000,
+                    'bytes': data['download'].get('bytes', 0),
                     'elapsed': data['download']['elapsed']
                 }
             },
@@ -41,7 +47,7 @@ class Influx:
                 'time': data['timestamp'],
                 'fields': {
                     # Byte to Megabit
-                    'bandwidth': data['upload']['bandwidth'] / 125000,
+                    'bandwidth': data['upload'].get('bandwidth', 0) / 125000,
                     'bytes': data['upload']['bytes'],
                     'elapsed': data['upload']['elapsed']
                 }
@@ -50,28 +56,28 @@ class Influx:
                 'measurement': 'packetLoss',
                 'time': data['timestamp'],
                 'fields': {
-                    'packetLoss': pkt_loss(data)
+                    'packetLoss': int(data.get('packetLoss', 0))
                 }
             },
             {
                 'measurement': 'speeds',
                 'time': data['timestamp'],
                 'fields': {
-                    'jitter': data['ping']['jitter'],
-                    'latency': data['ping']['latency'],
-                    'packetLoss': pkt_loss(data),
+                    'jitter': data['ping'].get('jitter', 0),
+                    'latency': data['ping'].get('latency',0),
+                    'packetLoss': int(data.get('packetLoss', 0)),
                     # Byte to Megabit
-                    'bandwidth_down': data['download']['bandwidth'] / 125000,
-                    'bytes_down': data['download']['bytes'],
+                    'bandwidth_down': data['download'].get('bandwidth', 0) / 125000,
+                    'bytes_down': data['download'].get('bytes', 0),
                     'elapsed_down': data['download']['elapsed'],
                     # Byte to Megabit
-                    'bandwidth_up': data['upload']['bandwidth'] / 125000,
-                    'bytes_up': data['upload']['bytes'],
+                    'bandwidth_up': data['upload'].get('bandwidth', 0) / 125000,
+                    'bytes_up': data['upload'].get('bytes', 0),
                     'elapsed_up': data['upload']['elapsed']
                 }
             }
         ]
-        tags = tag_selection(data)
+        tags = self.tag_selection(data)
         if tags is not None:
             for measurement in influx_data:
                 measurement['tags'] = tags
@@ -80,7 +86,7 @@ class Influx:
     
     def write(self, data):
         try:
-           if self.client.write_points(data):
+            if self.client.write_points(data):
                log.info("Data written successfully")
                log.debug(F"Wrote `{data}` to Influx")
             else:
@@ -89,13 +95,13 @@ class Influx:
             log.info(F"{err}")
             log.debug(F"Wrote `{data}` to Influx")
     
-    def tag_selection(data):
-        tags = DB_TAGS
+    def tag_selection(self, data):
+        tags = self.config['db_tags']
         options = {}
 
         # tag_switch takes in _data and attaches CLIoutput to more readable ids
         tag_switch = {
-            'namespace': NAMESPACE,
+            'namespace': self.config['namespace'],
             'isp': data['isp'],
             'interface': data['interface']['name'],
             'internal_ip': data['interface']['internalIp'],
@@ -125,8 +131,11 @@ class Influx:
             # split the tag string, strip and add selected tags to {options} with corresponding tag_switch data
             tag = tag.strip()
             options[tag] = tag_switch[tag]
-
         return options
+
+    def process_data(self, data):
+        data = self.format_data(data)
+        self.write(data)
 
 
         
