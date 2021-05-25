@@ -45,6 +45,7 @@ The variables available are:
 - SPEEDTEST_SERVER_ID = default - {blank} * id from https://c.speedtest.net/speedtest-servers-static.php *
 - PING_INTERVAL = default - 5 (seconds)
 - PING_TARGETS = default - 1.1.1.1, 8.8.8.8 (csv of hosts to ping)
+- LOG_TYPE = info
 
 ### Variable Notes
 - Intervals are in minutes. *Script will convert it to seconds.*
@@ -98,6 +99,7 @@ If you already have Docker and Docker Compose installed, you can use the include
     -e 'SPEEDTEST_INTERVAL'='5' \
     -e 'SPEEDTEST_FAIL_INTERVAL'='5'  \
     -e 'SPEEDTEST_SERVER_ID'='12746' \
+    -e 'LOG_TYPE'='info' \
     breadlysm/speedtest-to-influxdb
     ```
 - You can also use `ghcr.io/breadlysm/speedflux` as GitHub containers is enabled. 
