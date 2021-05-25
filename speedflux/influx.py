@@ -1,20 +1,24 @@
 from influxdb import InfluxDBClient
 from speedflux.logs import log
 
+
 class Influx:
     def __init__(self, config):
         self.config = config
-        self.client = InfluxDBClient(self.config['db_host'], 
-                                    self.config['db_port'], 
-                                    self.config['db_user'], 
-                                    self.config['db_pass'], 
-                                    None)
+        self.client = InfluxDBClient(
+            self.config['db_host'],
+            self.config['db_port'],
+            self.config['db_user'],
+            self.config['db_pass'],
+            None)
         self.init_db()
 
     def init_db(self):
         databases = self.client.get_list_database()
 
-        if len(list(filter(lambda x: x['name'] == self.config['db_name'], databases))) == 0:
+        if len(list(filter(
+                lambda x: x['name'] == self.config['db_name'], databases))
+               ) == 0:
             self.client.create_database(
                 self.config['db_name'])  # Create if does not exist.
         else:
@@ -22,14 +26,13 @@ class Influx:
             self.client.switch_database(self.config['db_name'])
 
     def format_data(self, data):
-        # There is additional data in the speedtest-cli output but it is likely not necessary to store.
         influx_data = [
             {
                 'measurement': 'ping',
                 'time': data['timestamp'],
                 'fields': {
                     'jitter': data['ping'].get('jitter', 0),
-                    'latency': data['ping'].get('latency',0)
+                    'latency': data['ping'].get('latency', 0)
                 }
             },
             {
@@ -64,16 +67,22 @@ class Influx:
                 'time': data['timestamp'],
                 'fields': {
                     'jitter': data['ping'].get('jitter', 0),
-                    'latency': data['ping'].get('latency',0),
+                    'latency': data['ping'].get('latency', 0),
                     'packetLoss': int(data.get('packetLoss', 0)),
                     # Byte to Megabit
-                    'bandwidth_down': data['download'].get('bandwidth', 0) / 125000,
-                    'bytes_down': data['download'].get('bytes', 0),
-                    'elapsed_down': data['download']['elapsed'],
+                    'bandwidth_down': data['download'].get(
+                        'bandwidth', 0) / 125000,
+                    'bytes_down': data['download'].get(
+                        'bytes', 0),
+                    'elapsed_down': data['download'].get(
+                        'elapsed'),
                     # Byte to Megabit
-                    'bandwidth_up': data['upload'].get('bandwidth', 0) / 125000,
-                    'bytes_up': data['upload'].get('bytes', 0),
-                    'elapsed_up': data['upload']['elapsed']
+                    'bandwidth_up': data['upload'].get(
+                        'bandwidth', 0) / 125000,
+                    'bytes_up': data['upload'].get(
+                        'bytes', 0),
+                    'elapsed_up': data['upload'].get(
+                        'elapsed')
                 }
             }
         ]
@@ -83,18 +92,18 @@ class Influx:
                 measurement['tags'] = tags
 
         return influx_data
-    
+
     def write(self, data, data_type='Speetest'):
         try:
             if self.client.write_points(data):
-               log.info(F"{data_type} data written successfully")
-               log.debug(F"Wrote `{data}` to Influx")
+                log.info(F"{data_type} data written successfully")
+                log.debug(F"Wrote `{data}` to Influx")
             else:
                 raise Exception(F"{data_type} write points did not complete")
         except Exception as err:
             log.info(F"{err}")
             log.debug(F"Wrote {data_type} points `{data}` to Influx")
-    
+
     def tag_selection(self, data):
         tags = self.config['db_tags']
         options = {}
@@ -106,7 +115,8 @@ class Influx:
             'interface': data['interface']['name'],
             'internal_ip': data['interface']['internalIp'],
             'interface_mac': data['interface']['macAddr'],
-            'vpn_enabled': (False if data['interface']['isVpn'] == 'false' else True),
+            'vpn_enabled': (
+                False if data['interface']['isVpn'] == 'false' else True),
             'external_ip': data['interface']['externalIp'],
             'server_id': data['server']['id'],
             'server_name': data['server']['name'],
@@ -128,7 +138,8 @@ class Influx:
 
         tags = tags.split(',')
         for tag in tags:
-            # split the tag string, strip and add selected tags to {options} with corresponding tag_switch data
+            # split the tag string, strip and add selected tags to {options}
+            # with corresponding tag_switch data
             tag = tag.strip()
             options[tag] = tag_switch[tag]
         return options
@@ -136,7 +147,3 @@ class Influx:
     def process_data(self, data):
         data = self.format_data(data)
         self.write(data)
-
-
-        
-
