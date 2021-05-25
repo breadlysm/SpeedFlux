@@ -22,7 +22,7 @@ def speedtest(config):
     if speedtest.returncode == 0:  # Speedtest was successful.
         log.info("Speedtest Successful...Writing to Influx")
         data_json = json.loads(speedtest.stdout)
-        log.info(F"""
+        log.info(F"""Speedtest Data:
             time: {data_json['timestamp']}
             ping: {data_json['ping']['latency']}ms
             download: {data_json['download']['bandwidth']/125000}Mb/s
