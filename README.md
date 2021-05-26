@@ -1,8 +1,9 @@
 
 
 
-# SpeedFlux
+# SpeedFlux <img src='https://user-images.githubusercontent.com/3665468/119589686-52b65f00-bda1-11eb-89cb-c0a159f8d9ba.png' width='150'>
 ---
+
 SpeedFlux will monitor your internet speeds at a regular interval and export all of the data to InfluxDB. 
 
 It is mostly written in Python but, uses Ookla's SpeedTest CLI. This is a CLI app. We use Python subprocess to utilize this tool.
