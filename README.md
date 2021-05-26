@@ -1,7 +1,7 @@
 
 
 
-# SpeedFlux <img src='https://user-images.githubusercontent.com/3665468/119589686-52b65f00-bda1-11eb-89cb-c0a159f8d9ba.png' width='150'>
+# SpeedFlux <img src='https://user-images.githubusercontent.com/3665468/119735610-974a0500-be4a-11eb-9149-dd12ceee03df.png' width='75'>
 ---
 
 SpeedFlux will monitor your internet speeds at a regular interval and export all of the data to InfluxDB. 
