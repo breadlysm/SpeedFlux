@@ -127,7 +127,7 @@ class Influx:
 
         return influx_data
 
-    def write(self, data, data_type='Speetest'):
+    def write(self, data, data_type='Speedtest'):
         try:
             if self.client.write_points(data):
                 log.info(F"{data_type} data written successfully")
