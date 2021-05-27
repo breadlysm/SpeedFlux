@@ -41,6 +41,14 @@ class Influx:
                 log.error("Couldn't connect to database. Ensure Influx is "
                           "running and that your credentials are correct")
                 log.error(httpe)
+            else:
+                log.error("We connected to influx okay but, errors still "
+                          "occurred. Forcing switch to chosen DB")
+                try:
+                    self.client.switch_database(self.config['db_name'])
+                except Exception:
+                    log.error("There are still problems switching to DB")
+                    log.error("")
 
     def test_connection(self):
         health = self.client.health()
