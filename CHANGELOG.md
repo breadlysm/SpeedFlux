@@ -1,9 +1,24 @@
 # Changelog
 
-## Unreleased (2021-05-25)
+## 0.4.1 (2021-05-27)
 
 #### New Features
 
+* :goal_net: Add error handling and logging
+* :loud_sound: Added more error logging.
+* :goal_net: Added logging around influx connection,
+#### Others
+
+* :pencil2: Fixed log typo
+* :recycle: Added f strings instead of string concat
+
+Full set of changes: [`0.4.0...0.4.1`](https://github.com/breadlysm/speedtest-to-influxdb/compare/0.4.0...0.4.1)
+
+## 0.4.0 (2021-05-25)
+
+#### New Features
+
+* (python): :zap: Major refactor
 * (python): :wrench: Added option for log level
 #### Fixes
 
@@ -28,7 +43,7 @@
 * (python): :rotating_light: Cleaned up formatting, fixed linting
 * (python): :rotating_light: Fixed linting
 
-Full set of changes: [`0.2.0...cd16a94`](https://github.com/breadlysm/speedtest-to-influxdb/compare/0.2.0...cd16a94)
+Full set of changes: [`0.2.0...0.4.0`](https://github.com/breadlysm/speedtest-to-influxdb/compare/0.2.0...0.4.0)
 
 ## 0.2.0 (2021-04-27)
 
