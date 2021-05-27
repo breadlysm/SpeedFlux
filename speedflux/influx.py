@@ -1,29 +1,55 @@
 from influxdb import InfluxDBClient
 from speedflux.logs import log
+from requests.exceptions import HTTPError
 
 
 class Influx:
     def __init__(self, config):
         self.config = config
-        self.client = InfluxDBClient(
-            self.config['db_host'],
-            self.config['db_port'],
-            self.config['db_user'],
-            self.config['db_pass'],
-            None)
+        self._client = None
         self.init_db()
 
-    def init_db(self):
-        databases = self.client.get_list_database()
+    @property
+    def client(self):
+        if not self._client:
+            self._client = InfluxDBClient(
+                self.config['db_host'],
+                self.config['db_port'],
+                self.config['db_user'],
+                self.config['db_pass'],
+                None)
+            log.debug("Client extablished")
+        return self._client
 
-        if len(list(filter(
-                lambda x: x['name'] == self.config['db_name'], databases))
-               ) == 0:
-            self.client.create_database(
-                self.config['db_name'])  # Create if does not exist.
+    def init_db(self):
+
+        try:
+            log.debug("Intitializing Influx Database")
+            databases = self.client.get_list_database()
+            if len(list(filter(
+                    lambda x: x['name'] == self.config['db_name'], databases))
+                   ) == 0:
+                self.client.create_database(
+                    self.config['db_name'])  # Create if does not exist.
+            else:
+                # Switch to if does exist.
+                self.client.switch_database(self.config['db_name'])
+        except HTTPError as httpe:
+            log.error("Error connecting to database. Running a health test")
+            health = self.test_connection()
+            if not health:
+                log.error("Couldn't connect to database. Ensure Influx is "
+                          "running and that your credentials are correct")
+                log.error(httpe)
+
+    def test_connection(self):
+        health = self.client.health()
+        if health.status == "pass":
+            print("Connected to database successfully.")
+            return True
         else:
-            # Switch to if does exist.
-            self.client.switch_database(self.config['db_name'])
+            print(f"Connection failure: {health.message}!")
+            return False
 
     def format_data(self, data):
         influx_data = [
