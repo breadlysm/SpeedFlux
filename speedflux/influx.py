@@ -1,12 +1,16 @@
+import sys
+from urllib3.exceptions import NewConnectionError
+
 from influxdb import InfluxDBClient
 from speedflux.logs import log
-from requests.exceptions import HTTPError
+from requests.exceptions import ConnectionError
 
 
 class Influx:
     def __init__(self, config):
         self.config = config
         self._client = None
+        self.retries = 0
         self.init_db()
 
     @property
@@ -34,30 +38,19 @@ class Influx:
             else:
                 # Switch to if does exist.
                 self.client.switch_database(self.config['db_name'])
-        except HTTPError as httpe:
-            log.error("Error connecting to database. Running a health test")
-            health = self.test_connection()
-            if not health:
-                log.error("Couldn't connect to database. Ensure Influx is "
-                          "running and that your credentials are correct")
-                log.error(httpe)
-            else:
-                log.error("We connected to influx okay but, errors still "
-                          "occurred. Forcing switch to chosen DB")
-                try:
-                    self.client.switch_database(self.config['db_name'])
-                except Exception:
-                    log.error("There are still problems switching to DB")
-                    log.error("")
-
-    def test_connection(self):
-        health = self.client.health()
-        if health.status == "pass":
-            print("Connected to database successfully.")
-            return True
-        else:
-            print(f"Connection failure: {health.message}!")
-            return False
+            self.initilized = True
+        except (ConnectionError, NewConnectionError) as bad_host:
+            if self.retries == 3:
+                log.error("Database Init failed for 3rd time. Exiting")
+                sys.exit()
+            self.retries += 1
+            log.error("Connection to influx host was refused. This likely "
+                      "means that the DB is down or INFLUX_DB_ADDRESS is "
+                      f"incorrect. It's currently '{self.config['db_host']}'")
+            log.error("Full Error follows\n")
+            log.error(bad_host)
+            log.error(f"Retry {self.retries}: Initiliazing DB.")
+            self.init_db()
 
     def format_data(self, data):
         influx_data = [
@@ -132,11 +125,26 @@ class Influx:
             if self.client.write_points(data):
                 log.info(F"{data_type} data written successfully")
                 log.debug(F"Wrote `{data}` to Influx")
+                self.retries = 0
             else:
                 raise Exception(F"{data_type} write points did not complete")
+        except (ConnectionError, NewConnectionError, Exception) as \
+                bad_connection:
+            if self.retries == 3:
+                log.error('Max retries exceeded for write. Check that data '
+                          'base is on and can receive data')
+                log.error('Exiting')
+                sys.exit()
+
+            log.error("Connection error occurred during write")
+            log.error(bad_connection)
+            self.retries += 1
+            log.error("Reinitiating database and retrying.")
+            self.init_db()
+            self.write(data, data_type)
+
         except Exception as err:
-            log.info(F"{err}")
-            log.debug(F"Wrote {data_type} points `{data}` to Influx")
+            log.error(F"{err}")
 
     def tag_selection(self, data):
         tags = self.config['db_tags']
