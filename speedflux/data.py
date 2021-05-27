@@ -15,9 +15,9 @@ def speedtest(config):
     else:
         speedtest = subprocess.run(
             ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json",
-                "--server-id=" + config['server_id']],
+                f"--server-id={config['server_id']}"],
             capture_output=True)
-        log.info("Manual server choice : ID = " + config['server_id'])
+        log.info(f"Manual server choice : ID = {config['server_id']}")
 
     if speedtest.returncode == 0:  # Speedtest was successful.
         log.info("Speedtest Successful...Writing to Influx")
