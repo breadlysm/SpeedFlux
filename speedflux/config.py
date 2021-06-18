@@ -1,35 +1,48 @@
 import os
+import re
+
+# import speedflux
 
 
-def get_config():
-    NAMESPACE = os.getenv('NAMESPACE', 'None')
-    DB_ADDRESS = os.getenv('INFLUX_DB_ADDRESS', 'influxdb')
-    DB_PORT = int(os.getenv('INFLUX_DB_PORT', '8086'))
-    DB_USER = os.getenv('INFLUX_DB_USER', '')
-    DB_PASSWORD = os.getenv('INFLUX_DB_PASSWORD', '')
-    DB_DATABASE = os.getenv('INFLUX_DB_DATABASE', 'speedtests')
-    DB_TAGS = os.getenv('INFLUX_DB_TAGS', None)
-    PING_TARGETS = os.getenv('PING_TARGETS', '1.1.1.1, 8.8.8.8')
-    # Speedtest Settings
-    # Time between tests (in minutes, converts to seconds).
-    TEST_INTERVAL = int(os.getenv('SPEEDTEST_INTERVAL', '180')) * 60
-    # Specific server ID
-    SERVER_ID = os.getenv('SPEEDTEST_SERVER_ID', '')
-    # Time between ping tests (in seconds).
-    PING_INTERVAL = int(os.getenv('PING_INTERVAL', '120'))
-    LOG_TYPE = os.getenv('LOG_TYPE', 'info')
-    config = {
-        'namespace': NAMESPACE,
-        'db_host': DB_ADDRESS,
-        'db_port': DB_PORT,
-        'db_user': DB_USER,
-        'db_pass': DB_PASSWORD,
-        'db_tags': DB_TAGS,
-        'db_name': DB_DATABASE,
-        'ping_targets': PING_TARGETS,
-        'test_interval': TEST_INTERVAL,
-        'ping_interval': PING_INTERVAL,
-        'server_id': SERVER_ID,
-        'log_level': LOG_TYPE
-    }
-    return config
+_CONFIG_DEFAULTS = {
+    'NAMESPACE': (str, 'Database', None),
+    'INFLUX_DB_ADDRESS': (str, 'Database', 'influxdb'),
+    'INFLUX_DB_PORT': (int, 'Database', 8086),
+    'INFLUX_DB_USER': (str, 'Database', None),
+    'INFLUX_DB_PASSWORD': (str, 'Database', None),
+    'INFLUX_DB_DATABASE': (str, 'Database', 'speedtests'),
+    'INFLUX_DB_TAGS': (str, 'Database', None),
+    'SPEEDTEST_INTERVAL': (int, 'SpeedTest', 180),
+    'SPEEDTEST_SERVER_ID': (str, 'SpeedTest', None),
+    'PING_TARGETS': (str, 'PingTest', '1.1.1.1, 8.8.8.8'),
+    'PING_INTERVAL': (int, 'PingTest', 120),
+    'LOG_TYPE': (str, 'Logs', 'info'),
+}
+
+
+class Config:
+
+    def get_setting(self, key):
+        """ Cast any value in the config to the right type or use the default
+        """
+        key, definition_type, section, default = self._define(key)
+        my_val = definition_type(os.getenv(key, default))
+        return my_val
+
+    def _define(self, name):
+        key = name.upper()
+        definition = _CONFIG_DEFAULTS[key]
+        if len(definition) == 3:
+            definition_type, section, default = definition
+        else:
+            definition_type, section, _, default = definition
+        return key, definition_type, section, default
+
+    def __getattr__(self, name):
+        """
+        Retrieves config value for the setting
+        """
+        if not re.match(r'[A-Z_]+$', name):
+            return super(Config, self).__getattr__(name)
+        else:
+            return self.get_setting(name)
