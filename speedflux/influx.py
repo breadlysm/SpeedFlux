@@ -2,7 +2,7 @@ import sys
 from urllib3.exceptions import NewConnectionError
 
 from influxdb import InfluxDBClient
-from speedflux.logs import log
+import speedflux
 from requests.exceptions import ConnectionError
 
 
@@ -17,39 +17,41 @@ class Influx:
     def client(self):
         if not self._client:
             self._client = InfluxDBClient(
-                self.config['db_host'],
-                self.config['db_port'],
-                self.config['db_user'],
-                self.config['db_pass'],
+                self.config.DB_HOST,
+                self.config.DB_PORT,
+                self.config.DB_USER,
+                self.config.DB_PASS,
                 None)
-            log.debug("Client extablished")
+            speedflux.LOG.debug("Client extablished")
         return self._client
 
     def init_db(self):
 
         try:
-            log.debug("Intitializing Influx Database")
+            speedflux.LOG.debug("Intitializing Influx Database")
             databases = self.client.get_list_database()
             if len(list(filter(
-                    lambda x: x['name'] == self.config['db_name'], databases))
+                    lambda x: x['name'] == self.config.DB_DATABASE, databases))
                    ) == 0:
                 self.client.create_database(
-                    self.config['db_name'])  # Create if does not exist.
+                    self.config.DB_DATABASE)  # Create if does not exist.
             else:
                 # Switch to if does exist.
-                self.client.switch_database(self.config['db_name'])
+                self.client.switch_database(self.config.DB_DATABASE)
             self.initilized = True
         except (ConnectionError, NewConnectionError) as bad_host:
             if self.retries == 3:
-                log.error("Database Init failed for 3rd time. Exiting")
+                speedflux.LOG.error(
+                    "Database Init failed for 3rd time. Exiting")
                 sys.exit()
             self.retries += 1
-            log.error("Connection to influx host was refused. This likely "
-                      "means that the DB is down or INFLUX_DB_ADDRESS is "
-                      f"incorrect. It's currently '{self.config['db_host']}'")
-            log.error("Full Error follows\n")
-            log.error(bad_host)
-            log.error(f"Retry {self.retries}: Initiliazing DB.")
+            speedflux.LOG.error(
+                "Connection to influx host was refused. This likely "
+                "means that the DB is down or INFLUX_DB_ADDRESS is "
+                f"incorrect. It's currently '{self.config.DB_HOST}'")
+            speedflux.LOG.error("Full Error follows\n")
+            speedflux.LOG.error(bad_host)
+            speedflux.LOG.error(f"Retry {self.retries}: Initiliazing DB.")
             self.init_db()
 
     def format_data(self, data):
@@ -123,36 +125,37 @@ class Influx:
     def write(self, data, data_type='Speedtest'):
         try:
             if self.client.write_points(data):
-                log.info(F"{data_type} data written successfully")
-                log.debug(F"Wrote `{data}` to Influx")
+                speedflux.LOG.info(F"{data_type} data written successfully")
+                speedflux.LOG.debug(F"Wrote `{data}` to Influx")
                 self.retries = 0
             else:
                 raise Exception(F"{data_type} write points did not complete")
         except (ConnectionError, NewConnectionError, Exception) as \
                 bad_connection:
             if self.retries == 3:
-                log.error('Max retries exceeded for write. Check that data '
-                          'base is on and can receive data')
-                log.error('Exiting')
+                speedflux.LOG.error(
+                    'Max retries exceeded for write. Check that database'
+                    ' is on and can receive data')
+                speedflux.LOG.error('Exiting')
                 sys.exit()
 
-            log.error("Connection error occurred during write")
-            log.error(bad_connection)
+            speedflux.LOG.error("Connection error occurred during write")
+            speedflux.LOG.error(bad_connection)
             self.retries += 1
-            log.error("Reinitiating database and retrying.")
+            speedflux.LOG.error("Reinitiating database and retrying.")
             self.init_db()
             self.write(data, data_type)
 
         except Exception as err:
-            log.error(F"{err}")
+            speedflux.LOG.error(F"{err}")
 
     def tag_selection(self, data):
-        tags = self.config['db_tags']
+        tags = self.config.DB_TAGS
         options = {}
 
         # tag_switch takes in _data and attaches CLIoutput to more readable ids
         tag_switch = {
-            'namespace': self.config['namespace'],
+            'namespace': self.config.NAMESPACE,
             'isp': data['isp'],
             'interface': data['interface']['name'],
             'internal_ip': data['interface']['internalIp'],
