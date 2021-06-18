@@ -27,11 +27,12 @@ def main():
                 pSpeed.terminate()
             pSpeed = Process(target=data.speedtest, args=())
             pSpeed.start()
-
-        if loopcount % (ping_interval *
-                        speedtest_interval) == 0:
-            loopcount = 0
-
+        if ping_interval != 0:
+            if loopcount % (ping_interval * speedtest_interval) == 0:
+                loopcount = 0
+        else:
+            if loopcount == speedtest_interval:
+                loopcount = 0
         time.sleep(1)
         loopcount += 1
 
