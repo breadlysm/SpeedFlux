@@ -2,29 +2,34 @@ import time
 
 import speedflux
 from multiprocessing import Process
+from speedflux import data
 
 
 def main():
     speedflux.initialize()
-    pPing = Process(target=speedflux.data.pingtest, args=())
-    pSpeed = Process(target=speedflux.data.speedtest, args=())
-
+    speedflux.LOG.info('Speedtest CLI data logger to InfluxDB started...')
+    pPing = Process(target=data.pingtest, args=())
+    pSpeed = Process(target=data.speedtest, args=())
+    speedtest_interval = speedflux.CONFIG.SPEEDTEST_INTERVAL * 60
+    ping_interval = speedflux.CONFIG.PING_INTERVAL
     loopcount = 0
     while (1):  # Run a Speedtest and send the results to influxDB
-        if loopcount == 0 or loopcount % speedflux.CONFIG.PING_INTERVAL == 0:
+        if loopcount == 0 or loopcount % ping_interval == 0 \
+                and ping_interval != 0:
             if pPing.is_alive():
                 pPing.terminate()
-            pPing = Process(target=speedflux.data.pingtest, args=())
+            pPing = Process(target=data.pingtest, args=())
             pPing.start()
 
-        if loopcount == 0 or loopcount % speedflux.CONFIG.TEST_INTERVAL == 0:
+        if loopcount == 0 or \
+                loopcount % speedtest_interval == 0:
             if pSpeed.is_alive():
                 pSpeed.terminate()
-            pSpeed = Process(target=speedflux.data.speedtest, args=())
+            pSpeed = Process(target=data.speedtest, args=())
             pSpeed.start()
 
-        if loopcount % (speedflux.CONFIG.PING_INTERVAL *
-                        speedflux.CONFIG.TEST_INTERVAL) == 0:
+        if loopcount % (ping_interval *
+                        speedtest_interval) == 0:
             loopcount = 0
 
         time.sleep(1)
@@ -32,5 +37,4 @@ def main():
 
 
 if __name__ == '__main__':
-    speedflux.LOG.info('Speedtest CLI data logger to InfluxDB started...')
     main()
