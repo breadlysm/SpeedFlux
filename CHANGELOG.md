@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased (2021-06-18)
+
+#### New Features
+
+* :zap: Adds global scopes for config, Logging, and influxdb.
+#### Fixes
+
+* :bug: fixed variable names. Disable pingtest if 0
+#### Refactorings
+
+* :bug: Fixed variable names, completed refactor
+* :art: Refactored to use global scopes.
+* :art: Refactored to use global scopes
+* :art: Refactored to bring logs into global scope.
+* :art: Refactored to match global config/logging
+* :art: wrote new config class
+
+Full set of changes: [`0.4.1...da2fceb`](https://github.com/breadlysm/speedtest-to-influxdb/compare/0.4.1...da2fceb)
+
 ## 0.4.1 (2021-05-27)
 
 #### New Features
