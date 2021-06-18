@@ -7,7 +7,7 @@ import speedflux
 
 
 def speedtest():
-    if not speedflux.CONFIG.SERVER_ID:
+    if not speedflux.CONFIG.SPEEDTEST_SERVER_ID:
         speedtest = subprocess.run(
             ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json"],
             capture_output=True)
@@ -15,10 +15,10 @@ def speedtest():
     else:
         speedtest = subprocess.run(
             ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json",
-                f"--server-id={speedflux.CONFIG.SERVER_ID}"],
+                f"--server-id={speedflux.CONFIG.SPEEDTEST_SERVER_ID}"],
             capture_output=True)
         speedflux.LOG.info("Manual server choice : "
-                           f"ID = {speedflux.CONFIG.SERVER_ID}")
+                           f"ID = {speedflux.CONFIG.SPEEDTEST_SERVER_ID}")
 
     if speedtest.returncode == 0:  # Speedtest was successful.
         speedflux.LOG.info("Speedtest Successful...Writing to Influx")

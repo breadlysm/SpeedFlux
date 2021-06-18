@@ -14,15 +14,14 @@ def main():
     ping_interval = speedflux.CONFIG.PING_INTERVAL
     loopcount = 0
     while (1):  # Run a Speedtest and send the results to influxDB
-        if loopcount == 0 or loopcount % ping_interval == 0 \
-                and ping_interval != 0:
-            if pPing.is_alive():
-                pPing.terminate()
-            pPing = Process(target=data.pingtest, args=())
-            pPing.start()
+        if ping_interval != 0:
+            if loopcount == 0 or loopcount % ping_interval == 0:
+                if pPing.is_alive():
+                    pPing.terminate()
+                pPing = Process(target=data.pingtest, args=())
+                pPing.start()
 
-        if loopcount == 0 or \
-                loopcount % speedtest_interval == 0:
+        if loopcount == 0 or loopcount % speedtest_interval == 0:
             if pSpeed.is_alive():
                 pSpeed.terminate()
             pSpeed = Process(target=data.speedtest, args=())

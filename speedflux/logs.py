@@ -8,7 +8,7 @@ class Log:
             config,
             log_format="%(asctime)s [%(levelname)s] %(message)s"):
         self.log_format = log_format
-        self.log_type = config.LOG_LEVEL
+        self.log_type = config.LOG_TYPE
         self._log_level = None
         self.announce_logging()
 
