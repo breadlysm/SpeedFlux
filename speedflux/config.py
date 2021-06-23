@@ -5,18 +5,27 @@ import re
 
 
 _CONFIG_DEFAULTS = {
-    'NAMESPACE': (str, 'Database', None),
-    'INFLUX_DB_ADDRESS': (str, 'Database', 'influxdb'),
-    'INFLUX_DB_PORT': (int, 'Database', 8086),
-    'INFLUX_DB_USER': (str, 'Database', None),
-    'INFLUX_DB_PASSWORD': (str, 'Database', None),
-    'INFLUX_DB_DATABASE': (str, 'Database', 'speedtests'),
-    'INFLUX_DB_TAGS': (str, 'Database', None),
+    'NAMESPACE': (str, 'Influx DB', None),
+    'INFLUX_DB_ADDRESS': (str, 'Influx DB', 'influxdb'),
+    'INFLUX_DB_PORT': (int, 'Influx DB', 8086),
+    'INFLUX_DB_USER': (str, 'Influx DB', None),
+    'INFLUX_DB_PASSWORD': (str, 'Influx DB', None),
+    'INFLUX_DB_DATABASE': (str, 'Influx DB', 'speedtests'),
+    'INFLUX_DB_TAGS': (str, 'Influx DB', None),
     'SPEEDTEST_INTERVAL': (int, 'SpeedTest', 180),
     'SPEEDTEST_SERVER_ID': (str, 'SpeedTest', None),
     'PING_TARGETS': (str, 'PingTest', '1.1.1.1, 8.8.8.8'),
     'PING_INTERVAL': (int, 'PingTest', 120),
-    'LOG_TYPE': (str, 'Logs', 'info'),
+    'LOG_TYPE': (str, 'General', 'info'),
+    'USE_INFLUX_1': (str, 'General', True),
+    'USE_INFLUX_2': (str, 'General', False),
+    'INFLUX_DB_2_TOKEN': (str, 'Influx DB', None),
+    'INFLUX_DB_2_ORG': (str, 'Influx DB', 'SpeedTest'),
+    'INFLUX_DB_2_BUCKET': (str, 'Influx DB', 'speedtests'),
+    'INFLUX_DB_2_ADDRESS': (str, 'Influx DB', 'influxdb2'),
+    'INFLUX_DB_2_PORT': (int, 'Influx DB', 8086),
+    'INFLUX_DB_2_USER': (str, 'Influx DB', None),
+    'INFLUX_DB_2_PASSWORD': (str, 'Influx DB', None)
 }
 
 

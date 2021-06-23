@@ -14,5 +14,10 @@ services:
         - PING_INTERVAL=60 # Seconds between ping updates
         - PING_TARGETS=1.1.1.1, 8.8.8.8 # csv of hostnames to ping
         - LOG_TYPE=info
-    image: speedflux
+        - INFLUX_DB_2_TOKEN=[InfluxDB2 Token]
+        - INFLUX_DB_2_ORG=[InfluxDB2 OrgName]
+        - INFLUX_DB_2_BUCKET=[InfluxDB2 BucketName]
+        - INFLUX_DB_2_ADDRESS=influxdb2
+        - INFLUX_DB_2_PORT=8086
+    image: ghcr.io/breadlysm/speedflux:latest
   
