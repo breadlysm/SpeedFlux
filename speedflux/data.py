@@ -3,26 +3,27 @@ import subprocess
 from pythonping import ping
 import json
 import datetime
-from speedflux.logs import log
+import speedflux
 
 
-def speedtest(config):
-    if not config['server_id']:
+def speedtest():
+    if not speedflux.CONFIG.SPEEDTEST_SERVER_ID:
         speedtest = subprocess.run(
             ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json"],
             capture_output=True)
-        log.info("Automatic server choice")
+        speedflux.LOG.info("Automatic server choice")
     else:
         speedtest = subprocess.run(
             ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json",
-                f"--server-id={config['server_id']}"],
+                f"--server-id={speedflux.CONFIG.SPEEDTEST_SERVER_ID}"],
             capture_output=True)
-        log.info(f"Manual server choice : ID = {config['server_id']}")
+        speedflux.LOG.info("Manual server choice : "
+                           f"ID = {speedflux.CONFIG.SPEEDTEST_SERVER_ID}")
 
     if speedtest.returncode == 0:  # Speedtest was successful.
-        log.info("Speedtest Successful...Writing to Influx")
+        speedflux.LOG.info("Speedtest Successful...Writing to Influx")
         data_json = json.loads(speedtest.stdout)
-        log.info(F"""Speedtest Data:
+        speedflux.LOG.info(F"""Speedtest Data:
             time: {data_json['timestamp']}
             ping: {data_json['ping']['latency']}ms
             download: {data_json['download']['bandwidth']/125000}Mb/s
@@ -33,18 +34,18 @@ def speedtest(config):
             server location: ({data_json['server']['name']} @ \
                 {data_json['server']['location']})
             """)
-        config['influx'].process_data(data_json)
+        speedflux.INFLUXDB.process_data(data_json)
     else:  # Speedtest failed.
-        log.info("Speedtest Failed :")
-        log.debug(speedtest.stderr)
-        log.debug(speedtest.stdout)
+        speedflux.LOG.info("Speedtest Failed :")
+        speedflux.LOG.debug(speedtest.stderr)
+        speedflux.LOG.debug(speedtest.stdout)
 
 
-def pingtest(config):
+def pingtest():
     timestamp = datetime.datetime.utcnow()
-    for target in config['ping_targets'].split(','):
+    for target in speedflux.CONFIG.PING_TARGETS.split(','):
         target = target.strip()
-        log.debug('Running ping test...')
+        speedflux.LOG.debug('Running ping test...')
         pingtest = ping(target, verbose=False, timeout=1, count=1, size=128)
         data = [
             {
@@ -62,6 +63,6 @@ def pingtest(config):
                 }
             }
         ]
-        if config['namespace']:
-            data[0]['tags']['namespace'] = config['namespace']
-        config['influx'].write(data, data_type='Ping')
+        if speedflux.CONFIG.NAMESPACE:
+            data[0]['tags']['namespace'] = speedflux.CONFIG.NAMESPACE
+        speedflux.INFLUXDB.write(data, data_type='Ping')
