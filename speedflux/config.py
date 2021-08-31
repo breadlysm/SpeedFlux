@@ -36,6 +36,8 @@ class Config:
         """
         key, definition_type, section, default = self._define(key)
         my_val = definition_type(os.getenv(key, default))
+        if my_val == 'None' and not default:
+            my_val = None
         return my_val
 
     def _define(self, name):
