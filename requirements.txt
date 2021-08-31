@@ -1,3 +1,4 @@
 pythonping
 requests
 influxdb
+influxdb-client
