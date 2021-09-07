@@ -35,8 +35,9 @@ def speedtest():
             server location: ({data_json['server']['name']} @ \
                 {data_json['server']['location']})
             """)
-        influx_format = format_speedtest(data_json)
-        # Needs write command
+        points = format_speedtest(data_json)
+        for measurement in points:
+            speedflux.INFLUXDB.write(measurement)
     else:  # Speedtest failed.
         speedflux.LOG.info("Speedtest Failed :")
         speedflux.LOG.debug(speedtest.stderr)
@@ -67,7 +68,9 @@ def pingtest():
         ]
         if speedflux.CONFIG.NAMESPACE:
             data[0]['tags']['namespace'] = speedflux.CONFIG.NAMESPACE
-        speedflux.INFLUXDB.write(data, data_type='Ping')
+        point = Point.from_dict(data[0])
+        speedflux.INFLUXDB.write(point)
+
 
 def format_speedtest(data):
     influx_data = [
@@ -141,7 +144,7 @@ def format_speedtest(data):
 def json_to_point(data):
     points = []
     for row in data:
-        point =  Point.from_dict(data)
+        point = Point.from_dict(data)
         points.append(point)
     return points
 
@@ -185,7 +188,3 @@ def tag_selection(data):
         tag = tag.strip()
         options[tag] = tag_switch[tag]
     return options
-
-def json_to_point(data):
-    for measurement in data:
-        pass
