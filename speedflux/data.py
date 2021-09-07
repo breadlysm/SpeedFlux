@@ -36,6 +36,7 @@ def speedtest():
                 {data_json['server']['location']})
             """)
         influx_format = format_speedtest(data_json)
+        print(influx_format)
         # Needs write command
     else:  # Speedtest failed.
         speedflux.LOG.info("Speedtest Failed :")
@@ -134,8 +135,17 @@ def format_speedtest(data):
     if tags is not None:
         for measurement in influx_data:
             measurement['tags'] = tags
-
+    influx_data = json_to_point(influx_data)
     return influx_data
+
+
+def json_to_point(data):
+    points = []
+    for row in data:
+        point =  Point.from_dict(data)
+        points.append(point)
+    return points
+
 
 def tag_selection(data):
     tags = speedflux.CONFIG.INFLUX_DB_TAGS
