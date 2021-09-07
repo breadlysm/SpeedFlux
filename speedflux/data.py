@@ -36,7 +36,6 @@ def speedtest():
                 {data_json['server']['location']})
             """)
         influx_format = format_speedtest(data_json)
-        print(influx_format)
         # Needs write command
     else:  # Speedtest failed.
         speedflux.LOG.info("Speedtest Failed :")
