@@ -19,13 +19,13 @@ _CONFIG_DEFAULTS = {
     'LOG_TYPE': (str, 'General', 'info'),
     'USE_INFLUX_ONE': (bool, 'General', True),
     'USE_INFLUX_TWO': (bool, 'General', False),
-    'INFLUX_DB_2_TOKEN': (str, 'Influx DB', None),
-    'INFLUX_DB_2_ORG': (str, 'Influx DB', 'SpeedTest'),
-    'INFLUX_DB_2_BUCKET': (str, 'Influx DB', 'speedtests'),
-    'INFLUX_DB_2_ADDRESS': (str, 'Influx DB', 'influxdb2'),
-    'INFLUX_DB_2_PORT': (int, 'Influx DB', 8086),
-    'INFLUX_DB_2_USER': (str, 'Influx DB', None),
-    'INFLUX_DB_2_PASSWORD': (str, 'Influx DB', None)
+    'INFLUX_TWO_TOKEN': (str, 'Influx DB', None),
+    'INFLUX_TWO_ORG': (str, 'Influx DB', 'SpeedTest'),
+    'INFLUX_TWO_BUCKET': (str, 'Influx DB', 'speedtests'),
+    'INFLUX_TWO_ADDRESS': (str, 'Influx DB', 'influxdb2'),
+    'INFLUX_TWO_PORT': (int, 'Influx DB', 8086),
+    'INFLUX_TWO_USER': (str, 'Influx DB', None),
+    'INFLUX_TWO_PASSWORD': (str, 'Influx DB', None)
 }
 
 
@@ -35,6 +35,12 @@ class Config:
         """ Cast any value in the config to the right type or use the default
         """
         key, definition_type, section, default = self._define(key)
+        if definition_type == bool:
+            my_val = os.getenv(key, default)
+            if isinstance(my_val, bool):
+                return my_val
+            else:
+                return my_val.lower() == 'true'
         my_val = definition_type(os.getenv(key, default))
         if my_val == 'None' and not default:
             my_val = None
