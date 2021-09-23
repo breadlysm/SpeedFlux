@@ -5,8 +5,6 @@ import speedflux
 
 
 class InfluxDB:
-    def __init__(self):
-        self._client = None
 
     @property
     def client(self):
@@ -27,6 +25,7 @@ class InfluxDB:
 
 class Influx1(InfluxDB):
     def __init__(self):
+        self._client = None
         self.url = f"{speedflux.CONFIG.INFLUX_DB_ADDRESS}:" \
                    f"{speedflux.CONFIG.INFLUX_DB_PORT}"
         self.token = f"{speedflux.CONFIG.INFLUX_DB_USER}:" \
@@ -37,8 +36,10 @@ class Influx1(InfluxDB):
 
 class Influx2(InfluxDB):
     def __init__(self):
-        self.url = f"{speedflux.CONFIG.INFLUX_DB_2_ADDRESS}:" \
-                   f"{speedflux.CONFIG.INFLUX_DB_2_PORT}"
-        self.token = speedflux.CONFIG.INFLUX_DB_2_TOKEN
-        self.org = self.CONFIG.INFLUX_DB_2_ORG
-        self.bucket = self.CONFIG.INFLUX_DB_2_BUCKET
+        self._client = None
+        super(InfluxDB, self).__init__()
+        self.url = f"{speedflux.CONFIG.INFLUX_TWO_ADDRESS}:" \
+                   f"{speedflux.CONFIG.INFLUX_TWO_PORT}"
+        self.token = speedflux.CONFIG.INFLUX_TWO_TOKEN
+        self.org = speedflux.CONFIG.INFLUX_TWO_ORG
+        self.bucket = speedflux.CONFIG.INFLUX_TWO_BUCKET
