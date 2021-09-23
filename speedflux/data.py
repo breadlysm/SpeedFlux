@@ -143,8 +143,9 @@ def format_speedtest(data):
 
 def json_to_point(data):
     points = []
-    for row in data:
-        point = Point.from_dict(data)
+    for stat in data:
+        print(stat['measurement'])
+        point = Point.from_dict(stat)
         points.append(point)
     return points
 
