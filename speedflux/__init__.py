@@ -18,7 +18,7 @@ def initialize():
         raise SystemExit("Unable to initialize SpeedFlux", err)
     try:
         LOG = logs.Log(CONFIG)
-        # print(CONFIG.INFLUX_DB_2_ADDRESS)
+        # print(CONFIG.INFLUX_TWO_ADDRESS)
     except Exception as err:
         raise SystemExit("Couldn't initiate logging", err)
     if CONFIG.USE_INFLUX_ONE:
@@ -32,5 +32,5 @@ def initialize():
         except Exception as err:
             raise SystemExit("Couldn't initiate InfluxDB 2+", err)
     else:
-        raise SystemExit("You must setup a ENV specifying Influx"
-                         " 1 or 2")
+        raise SystemExit("You must setup a Bool ENV specifying Influx"
+                         " USE_INFLUX_ONE or USE_INFLUX_TWO")
