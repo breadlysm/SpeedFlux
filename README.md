@@ -13,7 +13,7 @@ There are other Python packages out there that can use Ookla's systems but they 
 You can see on the Grafana image below some examples of those tags such as averageing the speeds of different testing sites and rank them. 
 Other uses may tagging different interfaces and running an instance for each. [You can view those tagging options below](https://github.com/breadlysm/speedtest-to-influxdb/blob/master/README.md#tag-options) 
 
- The grafana image below is a prebuilt dashboard you can find at https://grafana.com/grafana/dashboards/13053. The json is also available in the repo named `speedflux-standard.json`. Additionally, other contributors have modified this dash and included a JSON file of those modifications. Use `speedflux-enhanced.json` to import that dash into Grafana.
+ The grafana image below is a prebuilt dashboard you can find at https://grafana.com/grafana/dashboards/13053. The json is also available in the repo named `grafana-dash-original.json`. Additionally, other contributors have modified this dash and included a JSON file of those modifications. Use `grafana-dash-enhanced.json` to import that dash into Grafana.
 
 ![OriginalDash](https://user-images.githubusercontent.com/3665468/116284820-8038ca00-a75b-11eb-9b30-4a9d26434f8d.png)
 
