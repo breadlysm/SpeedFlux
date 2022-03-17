@@ -1,18 +1,18 @@
 version: "3.9"
 services:
   speedflux:
+    restart: always 
     build: .
     environment: 
-        - NAMESPACE= None
-        - INFLUX_DB_ADDRESS=[ip or hostname]
-        - INFLUX_DB_PORT=[8086]
-        - INFLUX_DB_USER=[db username]
-        - INFLUX_DB_PASSWORD=[db password]
-        - INFLUX_DB_DATABASE=speedtest
-        - INFLUX_DB_TAGS=[select tags or empty] # See https://github.com/breadlysm/speedtest-to-influxdb#tag-options for details
-        - SPEEDTEST_INTERVAL=150 # Minutes between speedtest updates. 
-        - PING_INTERVAL=60 # Seconds between ping updates
-        - PING_TARGETS=1.1.1.1, 8.8.8.8 # csv of hostnames to ping
-        - LOG_TYPE=info
+        - NAMESPACE=${NAMESPACE}
+        - INFLUX_DB_ADDRESS=${INFLUX_DB_ADDRESS}
+        - INFLUX_DB_PORT=${INFLUX_DB_PORT}
+        - INFLUX_DB_USER=${INFLUX_DB_USER}
+        - INFLUX_DB_PASSWORD=${INFLUX_DB_PASSWORD}
+        - INFLUX_DB_DATABASE=${INFLUX_DB_DATABASE}
+        - INFLUX_DB_TAGS=${INFLUX_DB_TAGS}
+        - SPEEDTEST_INTERVAL=${SPEEDTEST_INTERVAL}
+        - PING_INTERVAL=${PING_INTERVAL}
+        - PING_TARGETS=${PING_TARGETS}
+        - LOG_TYPE=${LOG_TYPE}
     image: speedflux
-  
