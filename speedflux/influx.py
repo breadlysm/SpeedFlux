@@ -25,7 +25,7 @@ class Influx:
             speedflux.LOG.debug("Client extablished")
         return self._client
 
-    def init_db(self, backoff_in_seconds = 1):
+    def init_db(self, backoff_in_seconds = 2):
 
         try:
             speedflux.LOG.debug("Intitializing Influx Database")
