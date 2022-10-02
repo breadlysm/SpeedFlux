@@ -1,4 +1,4 @@
-import sys
+import sys, random, time
 from urllib3.exceptions import NewConnectionError
 
 from influxdb import InfluxDBClient
@@ -25,7 +25,7 @@ class Influx:
             speedflux.LOG.debug("Client extablished")
         return self._client
 
-    def init_db(self):
+    def init_db(self, backoff_in_seconds = 1):
 
         try:
             speedflux.LOG.debug("Intitializing Influx Database")
@@ -44,6 +44,7 @@ class Influx:
                 speedflux.LOG.error(
                     "Database Init failed for 3rd time. Exiting")
                 sys.exit()
+            sleep = (backoff_in_seconds * 2 ** self.retries + random.uniform(0, 1))
             self.retries += 1
             speedflux.LOG.error(
                 "Connection to influx host was refused. This likely "
@@ -51,6 +52,8 @@ class Influx:
                 f"incorrect. It's currently '{self.config.INFLUX_DB_ADDRESS}'")
             speedflux.LOG.error("Full Error follows\n")
             speedflux.LOG.error(bad_host)
+            speedflux.LOG.info(f"Backing off before retrying. Sleeping for {sleep} seconds")
+            time.sleep(sleep)
             speedflux.LOG.error(f"Retry {self.retries}: Initiliazing DB.")
             self.init_db()
 
