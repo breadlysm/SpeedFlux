@@ -12,14 +12,19 @@ def speedtest():
             ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json"],
             capture_output=True)
         speedflux.LOG.info("Automatic server choice")
+        speedtest_parse(speedtest)
     else:
-        speedtest = subprocess.run(
-            ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json",
-                f"--server-id={speedflux.CONFIG.SPEEDTEST_SERVER_ID}"],
-            capture_output=True)
-        speedflux.LOG.info("Manual server choice : "
-                           f"ID = {speedflux.CONFIG.SPEEDTEST_SERVER_ID}")
+        for server_id in speedflux.CONFIG.SPEEDTEST_SERVER_ID.split(","):
+            speedtest = subprocess.run(
+                ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json",
+                     f"--server-id={server_id}"],
+                capture_output=True)
+            speedflux.LOG.info("Manual server choice : "
+                               f"ID = {server_id}")
+            speedtest_parse(speedtest)
 
+
+def speedtest_parse(speedtest):
     if speedtest.returncode == 0:  # Speedtest was successful.
         speedflux.LOG.info("Speedtest Successful...Writing to Influx")
         data_json = json.loads(speedtest.stdout)
