@@ -69,6 +69,26 @@ class VictoriaMetricsBackend(BaseBackend):
             speedflux.LOG.error(f"Retry {self.retries}: Initializing VictoriaMetrics.")
             self.init_db()
 
+    def _escape_line_protocol_value(self, value):
+        """Escape a value for InfluxDB line protocol.
+        
+        In InfluxDB line protocol, tag and field values must escape:
+        - Commas as \,
+        - Spaces as \ 
+        - Equals signs as \=
+        
+        Args:
+            value: The value to escape (will be converted to string)
+            
+        Returns:
+            Escaped string value
+        """
+        if value is None:
+            return ''
+        str_value = str(value)
+        # Escape special characters: comma, space, equals
+        return str_value.replace('\\', '\\\\').replace(',', '\\,').replace(' ', '\\ ').replace('=', '\\=')
+    
     def format_data(self, data):
         """Format data as InfluxDB line protocol.
 
@@ -76,7 +96,10 @@ class VictoriaMetricsBackend(BaseBackend):
         measurement,tag1=value1,tag2=value2 field1=value1,field2=value2 timestamp
         """
         tags = self.tag_selection(data)
-        tag_str = ','.join([f'{k}={v}' for k, v in tags.items()]) if tags else ''
+        if tags:
+            tag_str = ','.join([f'{self._escape_line_protocol_value(k)}={self._escape_line_protocol_value(v)}' for k, v in tags.items()])
+        else:
+            tag_str = ''
 
         # Convert timestamp to nanoseconds
         timestamp = data['timestamp']
@@ -166,7 +189,10 @@ class VictoriaMetricsBackend(BaseBackend):
         """
         measurement = data[0]
         tags = measurement.get('tags', {})
-        tag_str = ','.join([f'{k}={v}' for k, v in tags.items()]) if tags else ''
+        if tags:
+            tag_str = ','.join([f'{self._escape_line_protocol_value(k)}={self._escape_line_protocol_value(v)}' for k, v in tags.items()])
+        else:
+            tag_str = ''
 
         fields = f"success={measurement['fields']['success']}i,rtt={measurement['fields']['rtt']}"
         timestamp = measurement['time'].isoformat() if hasattr(measurement['time'], 'isoformat') else measurement['time']
