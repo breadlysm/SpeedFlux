@@ -50,8 +50,12 @@ class Config:
         """ Cast any value in the config to the right type or use the default
         """
         key, definition_type, section, default = self._define(key)
-        my_val = definition_type(os.getenv(key, default))
-        return my_val
+        env_val = os.getenv(key)
+        if env_val is not None:
+            # Environment variable is set, cast to type
+            return definition_type(env_val)
+        # Return default as-is (may be None)
+        return default
 
     def _define(self, name):
         key = name.upper()
