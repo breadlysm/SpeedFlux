@@ -5,25 +5,22 @@ LABEL maintainer="Breadlysm" \
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
-RUN apt-get update 
-RUN apt-get -q -y install --no-install-recommends apt-utils gnupg1 apt-transport-https dirmngr curl
+RUN apt-get update && \
+    apt-get -q -y install --no-install-recommends curl ca-certificates && \
+    apt-get -q -y autoremove && apt-get -q -y clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install Speedtest
-RUN curl -s https://install.speedtest.net/app/cli/install.deb.sh --output /opt/install.deb.sh
-RUN bash /opt/install.deb.sh
-RUN apt-get update && apt-get -q -y install speedtest
-RUN rm /opt/install.deb.sh
-
-# Clean up
-RUN apt-get -q -y autoremove && apt-get -q -y clean 
-RUN rm -rf /var/lib/apt/lists/*
+# Install Speedtest CLI via direct download (package manager doesn't support Bookworm yet)
+RUN curl -sL https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-linux-x86_64.tgz -o /tmp/speedtest.tgz && \
+    tar -xzf /tmp/speedtest.tgz -C /usr/local/bin speedtest && \
+    rm /tmp/speedtest.tgz && \
+    chmod +x /usr/local/bin/speedtest
 
 # Copy and final setup
-ADD . /app
 WORKDIR /app
 COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt 
+RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
-# Excetution
+# Execution
 CMD ["python", "main.py"]
