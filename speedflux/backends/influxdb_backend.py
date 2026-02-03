@@ -3,6 +3,7 @@ import sys
 from urllib3.exceptions import NewConnectionError
 
 from influxdb import InfluxDBClient
+from influxdb.exceptions import InfluxDBClientError, InfluxDBServerError
 import speedflux
 from requests.exceptions import ConnectionError
 
@@ -20,6 +21,9 @@ class InfluxDBBackend(BaseBackend):
     @property
     def client(self):
         if not self._client:
+            speedflux.LOG.debug(
+                f"Creating InfluxDB client: {self.config.INFLUX_DB_ADDRESS}:"
+                f"{self.config.INFLUX_DB_PORT}")
             self._client = InfluxDBClient(
                 self.config.INFLUX_DB_ADDRESS,
                 self.config.INFLUX_DB_PORT,
@@ -33,30 +37,38 @@ class InfluxDBBackend(BaseBackend):
         try:
             speedflux.LOG.debug("Initializing InfluxDB Database")
             databases = self.client.get_list_database()
-            if len(list(filter(
-                    lambda x: x['name'] ==
-                        self.config.INFLUX_DB_DATABASE, databases))) == 0:
-                self.client.create_database(
-                    self.config.INFLUX_DB_DATABASE)
-            else:
-                self.client.switch_database(self.config.INFLUX_DB_DATABASE)
+            speedflux.LOG.debug(f"Available databases: {databases}")
+
+            db_name = self.config.INFLUX_DB_DATABASE
+            db_exists = any(db['name'] == db_name for db in databases)
+
+            if not db_exists:
+                speedflux.LOG.info(f"Creating database: {db_name}")
+                self.client.create_database(db_name)
+
+            # Always switch to the target database
+            speedflux.LOG.debug(f"Switching to database: {db_name}")
+            self.client.switch_database(db_name)
+
             self.initialized = True
+            self.retries = 0
+            speedflux.LOG.debug(f"InfluxDB initialized successfully, using database: {db_name}")
+
         except (ConnectionError, NewConnectionError) as bad_host:
-            if self.retries == self.max_retries:
+            if self.retries >= self.max_retries:
                 speedflux.LOG.error(
-                    f"InfluxDB init failed for {self.max_retries} time(s). Exiting")
-                sys.exit()
+                    f"InfluxDB init failed after {self.max_retries} retries. Exiting")
+                sys.exit(1)
             self.retries += 1
             speedflux.LOG.error(
-                "Connection to InfluxDB host was refused. This likely "
-                "means that the DB is down or INFLUX_DB_ADDRESS is "
-                f"incorrect. It's currently '{self.config.INFLUX_DB_ADDRESS}'")
-            speedflux.LOG.error("Full Error follows\n")
-            speedflux.LOG.error(bad_host)
-            speedflux.LOG.error(f"Retry {self.retries}: Initializing DB.")
+                f"Connection to InfluxDB refused. Address: "
+                f"'{self.config.INFLUX_DB_ADDRESS}:{self.config.INFLUX_DB_PORT}'")
+            speedflux.LOG.error(f"Error: {bad_host}")
+            speedflux.LOG.error(f"Retry {self.retries}/{self.max_retries}: Initializing DB.")
             self.init_db()
 
     def format_data(self, data):
+        speedflux.LOG.debug("Formatting speedtest data for InfluxDB")
         influx_data = [
             {
                 'measurement': 'ping',
@@ -118,31 +130,51 @@ class InfluxDBBackend(BaseBackend):
             for measurement in influx_data:
                 measurement['tags'] = tags
 
+        speedflux.LOG.debug(f"Formatted {len(influx_data)} measurements")
         return influx_data
 
     def write(self, data, data_type='Speedtest'):
+        speedflux.LOG.debug(f"Writing {data_type} data to InfluxDB")
         try:
-            if self.client.write_points(data):
+            result = self.client.write_points(data)
+            if result:
                 speedflux.LOG.info(f"{data_type} data written to InfluxDB")
-                speedflux.LOG.debug(f"Wrote `{data}` to InfluxDB")
+                speedflux.LOG.debug(f"Write successful. Data: {data}")
                 self.retries = 0
+                return True
             else:
+                speedflux.LOG.error(f"{data_type} write_points returned False")
                 raise Exception(f"{data_type} write points did not complete")
-        except (ConnectionError, NewConnectionError, Exception) as \
-                bad_connection:
-            if self.retries == self.max_retries:
-                speedflux.LOG.error(
-                    'Max retries exceeded for InfluxDB write. Check that database'
-                    ' is on and can receive data')
-                speedflux.LOG.error('Exiting')
-                sys.exit()
 
-            speedflux.LOG.error("Connection error occurred during InfluxDB write")
-            speedflux.LOG.error(bad_connection)
-            self.retries += 1
-            speedflux.LOG.error("Reinitiating database and retrying.")
-            self.init_db()
-            self.write(data, data_type)
+        except (InfluxDBClientError, InfluxDBServerError) as db_error:
+            speedflux.LOG.error(f"InfluxDB error during write: {db_error}")
+            speedflux.LOG.debug(f"Failed data: {data}")
+            self._handle_write_error(data, data_type, db_error)
+
+        except (ConnectionError, NewConnectionError) as conn_error:
+            speedflux.LOG.error(f"Connection error during InfluxDB write: {conn_error}")
+            self._handle_write_error(data, data_type, conn_error)
 
         except Exception as err:
-            speedflux.LOG.error(f"{err}")
+            speedflux.LOG.error(f"Unexpected error during InfluxDB write: {err}")
+            speedflux.LOG.debug(f"Error type: {type(err).__name__}")
+            self._handle_write_error(data, data_type, err)
+
+        return False
+
+    def _handle_write_error(self, data, data_type, error):
+        """Handle write errors with retry logic."""
+        if self.retries >= self.max_retries:
+            speedflux.LOG.error(
+                f'Max retries ({self.max_retries}) exceeded for InfluxDB write.')
+            speedflux.LOG.error('Exiting')
+            sys.exit(1)
+
+        self.retries += 1
+        speedflux.LOG.error(
+            f"Retry {self.retries}/{self.max_retries}: Reinitializing database and retrying.")
+
+        # Reset client to force reconnection
+        self._client = None
+        self.init_db()
+        self.write(data, data_type)
