@@ -6,15 +6,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
 RUN apt-get update && \
-    apt-get -q -y install --no-install-recommends curl ca-certificates && \
-    apt-get -q -y autoremove && apt-get -q -y clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get -q -y install --no-install-recommends curl ca-certificates gnupg
 
-# Install Speedtest CLI via direct download (package manager doesn't support Bookworm yet)
-RUN curl -sL https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-linux-x86_64.tgz -o /tmp/speedtest.tgz && \
-    tar -xzf /tmp/speedtest.tgz -C /usr/local/bin speedtest && \
-    rm /tmp/speedtest.tgz && \
-    chmod +x /usr/local/bin/speedtest
+# Install Speedtest CLI from packagecloud.io (new official repo)
+RUN curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | bash && \
+    apt-get update && \
+    apt-get -q -y install speedtest
+
+# Clean up
+RUN apt-get -q -y autoremove && apt-get -q -y clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy and final setup
 WORKDIR /app
