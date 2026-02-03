@@ -1,4 +1,4 @@
-FROM python:3.8-slim-buster
+FROM python:3.11-slim-bookworm
 LABEL maintainer="Breadlysm" \
     description="Original by Aiden Gilmartin. Maintained by Breadlysm"
 
