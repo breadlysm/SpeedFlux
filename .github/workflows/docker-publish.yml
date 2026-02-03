@@ -1,10 +1,9 @@
 name: Build Container
 on:
   push:
-    # Publish `master` as Docker `latest` image.
+    # Publish all branches
     branches:
-      - master
-      - feature-influx2
+      - '**'
 
     # Publish `v1.2.3` tags as releases.
     tags:
@@ -66,8 +65,8 @@ jobs:
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
 
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          # Get branch/tag name and replace slashes with dashes for valid Docker tag
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,refs/heads/,,' -e 's,refs/tags/,,' -e 's,/,-,g')
 
           # Strip "v" prefix from tag name
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
