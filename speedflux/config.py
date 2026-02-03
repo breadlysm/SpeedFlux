@@ -5,17 +5,38 @@ import re
 
 
 _CONFIG_DEFAULTS = {
+    # General settings
     'NAMESPACE': (str, 'Database', None),
+
+    # Backend selection - comma-separated list: influxdb,victoriametrics,prometheus
+    # Default: influxdb (for backward compatibility)
+    'SPEEDFLUX_BACKENDS': (str, 'Database', 'influxdb'),
+
+    # InfluxDB settings (original - kept for backward compatibility)
     'INFLUX_DB_ADDRESS': (str, 'Database', 'influxdb'),
     'INFLUX_DB_PORT': (int, 'Database', 8086),
     'INFLUX_DB_USER': (str, 'Database', None),
     'INFLUX_DB_PASSWORD': (str, 'Database', None),
     'INFLUX_DB_DATABASE': (str, 'Database', 'speedtests'),
     'INFLUX_DB_TAGS': (str, 'Database', None),
+
+    # VictoriaMetrics settings
+    'VICTORIAMETRICS_ADDRESS': (str, 'Database', 'victoriametrics'),
+    'VICTORIAMETRICS_PORT': (int, 'Database', 8428),
+    'VICTORIAMETRICS_DATABASE': (str, 'Database', 'speedtests'),
+
+    # Prometheus settings
+    'PROMETHEUS_PORT': (int, 'Database', 9091),
+
+    # SpeedTest settings
     'SPEEDTEST_INTERVAL': (int, 'SpeedTest', 180),
     'SPEEDTEST_SERVER_ID': (str, 'SpeedTest', None),
+
+    # Ping settings
     'PING_TARGETS': (str, 'PingTest', '1.1.1.1, 8.8.8.8'),
     'PING_INTERVAL': (int, 'PingTest', 120),
+
+    # Logging
     'LOG_TYPE': (str, 'Logs', 'info'),
 }
 

@@ -21,9 +21,9 @@ def speedtest():
                            f"ID = {speedflux.CONFIG.SPEEDTEST_SERVER_ID}")
 
     if speedtest.returncode == 0:  # Speedtest was successful.
-        speedflux.LOG.info("Speedtest Successful...Writing to Influx")
+        speedflux.LOG.info("Speedtest Successful...Writing to database(s)")
         data_json = json.loads(speedtest.stdout)
-        speedflux.LOG.info(F"""Speedtest Data:
+        speedflux.LOG.info(f"""Speedtest Data:
             time: {data_json['timestamp']}
             ping: {data_json['ping']['latency']}ms
             download: {data_json['download']['bandwidth']/125000}Mb/s
@@ -34,7 +34,8 @@ def speedtest():
             server location: ({data_json['server']['name']} @ \
                 {data_json['server']['location']})
             """)
-        speedflux.INFLUXDB.process_data(data_json)
+        # Write to all configured backends
+        _write_to_all_backends(data_json, is_speedtest=True)
     else:  # Speedtest failed.
         speedflux.LOG.info("Speedtest Failed :")
         speedflux.LOG.debug(speedtest.stderr)
@@ -65,4 +66,28 @@ def pingtest():
         ]
         if speedflux.CONFIG.NAMESPACE:
             data[0]['tags']['namespace'] = speedflux.CONFIG.NAMESPACE
-        speedflux.INFLUXDB.write(data, data_type='Ping')
+        # Write to all configured backends
+        _write_to_all_backends(data, is_speedtest=False)
+
+
+def _write_to_all_backends(data, is_speedtest=True):
+    """Write data to all configured backends.
+
+    Args:
+        data: The data to write (speedtest JSON or ping data)
+        is_speedtest: True for speedtest data, False for ping data
+    """
+    for backend in speedflux.BACKENDS:
+        try:
+            if is_speedtest:
+                backend.process_data(data)
+            else:
+                # Ping data - use write_ping if available, otherwise write
+                if hasattr(backend, 'write_ping'):
+                    backend.write_ping(data)
+                else:
+                    backend.write(data, data_type='Ping')
+        except Exception as err:
+            speedflux.LOG.error(
+                f"Error writing to {backend.name}: {err}"
+            )
