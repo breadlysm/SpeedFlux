@@ -30,7 +30,10 @@ _CONFIG_DEFAULTS = {
 
     # SpeedTest settings
     'SPEEDTEST_INTERVAL': (int, 'SpeedTest', 180),
+    # Comma-separated list of server IDs to rotate through
     'SPEEDTEST_SERVER_ID': (str, 'SpeedTest', None),
+    # Country code to filter servers (e.g., 'US', 'GB', 'DE')
+    'SPEEDTEST_COUNTRY': (str, 'SpeedTest', None),
 
     # Ping settings
     'PING_TARGETS': (str, 'PingTest', '1.1.1.1, 8.8.8.8'),

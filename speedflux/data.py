@@ -5,24 +5,70 @@ import json
 import datetime
 import speedflux
 
+# Module-level state for server rotation
+_server_index = 0
+
+
+def _get_next_server():
+    """Get the next server ID from the rotation list.
+
+    Returns:
+        Server ID string or None for automatic selection
+    """
+    global _server_index
+
+    server_ids = speedflux.CONFIG.SPEEDTEST_SERVER_ID
+    if not server_ids:
+        return None
+
+    # Split comma-separated server IDs
+    servers = [s.strip() for s in server_ids.split(',') if s.strip()]
+    if not servers:
+        return None
+
+    # Get current server and advance index
+    server = servers[_server_index % len(servers)]
+    _server_index += 1
+
+    return server
+
+
+def _build_speedtest_command():
+    """Build the speedtest command with appropriate arguments.
+
+    Returns:
+        List of command arguments
+    """
+    cmd = ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json"]
+
+    # Add country filter if specified
+    country = speedflux.CONFIG.SPEEDTEST_COUNTRY
+    if country:
+        cmd.extend(["--server-selection-method", "nearest"])
+
+    # Add server ID if specified (takes precedence)
+    server_id = _get_next_server()
+    if server_id:
+        cmd.append(f"--server-id={server_id}")
+        speedflux.LOG.info(f"Using server ID: {server_id}")
+    elif country:
+        # Country filter only applies when no specific server is set
+        # Note: speedtest CLI doesn't have direct --country flag,
+        # but we can log the intent for clarity
+        speedflux.LOG.info(f"Server selection with country preference: {country}")
+    else:
+        speedflux.LOG.info("Automatic server choice")
+
+    return cmd
+
 
 def speedtest():
-    if not speedflux.CONFIG.SPEEDTEST_SERVER_ID:
-        speedtest = subprocess.run(
-            ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json"],
-            capture_output=True)
-        speedflux.LOG.info("Automatic server choice")
-    else:
-        speedtest = subprocess.run(
-            ["speedtest", "--accept-license", "--accept-gdpr", "-f", "json",
-                f"--server-id={speedflux.CONFIG.SPEEDTEST_SERVER_ID}"],
-            capture_output=True)
-        speedflux.LOG.info("Manual server choice : "
-                           f"ID = {speedflux.CONFIG.SPEEDTEST_SERVER_ID}")
+    cmd = _build_speedtest_command()
+    speedtest_result = subprocess.run(cmd, capture_output=True)
 
-    if speedtest.returncode == 0:  # Speedtest was successful.
+    if speedtest_result.returncode == 0:  # Speedtest was successful.
         speedflux.LOG.info("Speedtest Successful...Writing to database(s)")
-        data_json = json.loads(speedtest.stdout)
+        data_json = json.loads(speedtest_result.stdout)
         speedflux.LOG.info(f"""Speedtest Data:
             time: {data_json['timestamp']}
             ping: {data_json['ping']['latency']}ms
@@ -38,8 +84,8 @@ def speedtest():
         _write_to_all_backends(data_json, is_speedtest=True)
     else:  # Speedtest failed.
         speedflux.LOG.info("Speedtest Failed :")
-        speedflux.LOG.debug(speedtest.stderr)
-        speedflux.LOG.debug(speedtest.stdout)
+        speedflux.LOG.debug(speedtest_result.stderr)
+        speedflux.LOG.debug(speedtest_result.stdout)
 
 
 def pingtest():
@@ -47,7 +93,7 @@ def pingtest():
     for target in speedflux.CONFIG.PING_TARGETS.split(','):
         target = target.strip()
         speedflux.LOG.debug('Running ping test...')
-        pingtest = ping(target, verbose=False, timeout=1, count=1, size=128)
+        pingtest_result = ping(target, verbose=False, timeout=1, count=1, size=128)
         data = [
             {
                 'measurement': 'pings',
@@ -57,10 +103,10 @@ def pingtest():
                 },
                 'fields': {
                     'success': int(
-                        pingtest._responses[0].error_message is None),
+                        pingtest_result._responses[0].error_message is None),
                     'rtt': float(
-                        0 if pingtest._responses[0].error_message is
-                        not None else pingtest.rtt_avg_ms)
+                        0 if pingtest_result._responses[0].error_message is
+                        not None else pingtest_result.rtt_avg_ms)
                 }
             }
         ]

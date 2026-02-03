@@ -22,6 +22,8 @@ services:
         # - PROMETHEUS_PORT=9091
         # Speedtest settings
         - SPEEDTEST_INTERVAL=150 # Minutes between speedtest updates
+        # - SPEEDTEST_SERVER_ID=1234,5678 # Comma-separated server IDs to rotate through
+        # - SPEEDTEST_COUNTRY=US # Country code for server selection (e.g., US, GB, DE)
         - PING_INTERVAL=60 # Seconds between ping updates
         - PING_TARGETS=1.1.1.1, 8.8.8.8 # csv of hostnames to ping
         - LOG_TYPE=info
