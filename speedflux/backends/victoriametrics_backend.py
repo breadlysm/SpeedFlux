@@ -4,6 +4,7 @@ VictoriaMetrics supports InfluxDB line protocol, making migration seamless.
 Data is sent via HTTP POST to the /write endpoint.
 """
 import sys
+from datetime import datetime
 import requests
 from requests.exceptions import ConnectionError, Timeout
 
@@ -86,8 +87,67 @@ class VictoriaMetricsBackend(BaseBackend):
         if value is None:
             return ''
         str_value = str(value)
-        # Escape special characters: comma, space, equals
+        # Escape special characters: backslash first, then comma, space, equals
+        # Order matters: escape backslash first to avoid double-escaping
         return str_value.replace('\\', '\\\\').replace(',', '\\,').replace(' ', '\\ ').replace('=', '\\=')
+    
+    def _convert_timestamp_to_nanoseconds(self, timestamp):
+        """Convert timestamp to nanoseconds since epoch.
+        
+        VictoriaMetrics requires timestamps in nanoseconds since Unix epoch.
+        The timestamp can be:
+        - ISO format string (e.g., "2026-02-03T20:57:12Z")
+        - datetime object
+        - Already a numeric value (assumed to be nanoseconds)
+        
+        Args:
+            timestamp: Timestamp in various formats
+            
+        Returns:
+            Integer nanoseconds since epoch
+        """
+        if isinstance(timestamp, (int, float)):
+            # Already numeric - assume it's in the correct format
+            return int(timestamp)
+        
+        if isinstance(timestamp, str):
+            # Parse ISO format string
+            try:
+                # Try parsing with timezone info
+                if timestamp.endswith('Z'):
+                    dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                else:
+                    dt = datetime.fromisoformat(timestamp)
+            except ValueError:
+                # Fallback: try parsing common formats
+                for fmt in ['%Y-%m-%dT%H:%M:%S', '%Y-%m-%dT%H:%M:%SZ', '%Y-%m-%d %H:%M:%S']:
+                    try:
+                        dt = datetime.strptime(timestamp, fmt)
+                        break
+                    except ValueError:
+                        continue
+                else:
+                    raise ValueError(f"Unable to parse timestamp: {timestamp}")
+        elif isinstance(timestamp, datetime):
+            dt = timestamp
+        else:
+            raise ValueError(f"Unsupported timestamp type: {type(timestamp)}")
+        
+        # Convert to UTC if timezone-aware, otherwise assume UTC
+        from datetime import timezone
+        if dt.tzinfo is None:
+            # Assume UTC if no timezone info
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            # Convert to UTC if timezone-aware
+            dt = dt.astimezone(timezone.utc)
+        
+        # Convert to UTC timestamp (epoch is always UTC)
+        epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+        seconds_since_epoch = (dt - epoch).total_seconds()
+        
+        # Convert to nanoseconds
+        return int(seconds_since_epoch * 1_000_000_000)
     
     def format_data(self, data):
         """Format data as InfluxDB line protocol.
@@ -101,8 +161,8 @@ class VictoriaMetricsBackend(BaseBackend):
         else:
             tag_str = ''
 
-        # Convert timestamp to nanoseconds
-        timestamp = data['timestamp']
+        # Convert timestamp to nanoseconds since epoch (required by VictoriaMetrics)
+        timestamp = self._convert_timestamp_to_nanoseconds(data['timestamp'])
 
         lines = []
 
@@ -195,7 +255,8 @@ class VictoriaMetricsBackend(BaseBackend):
             tag_str = ''
 
         fields = f"success={measurement['fields']['success']}i,rtt={measurement['fields']['rtt']}"
-        timestamp = measurement['time'].isoformat() if hasattr(measurement['time'], 'isoformat') else measurement['time']
+        # Convert timestamp to nanoseconds since epoch (required by VictoriaMetrics)
+        timestamp = self._convert_timestamp_to_nanoseconds(measurement['time'])
 
         line = self._build_line('pings', tag_str, fields, timestamp)
         self.write(line, data_type='Ping')
